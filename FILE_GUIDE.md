@@ -623,7 +623,4 @@ User Device (Homey)
 
 ---
 
-**Need help with a specific file?** Check the file directly or see:
-- [README_TYPESCRIPT.md](README_TYPESCRIPT.md) for usage examples
-- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) for integration steps
-- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for overview
+For detailed API usage examples and full documentation, see [README.md](README.md).
