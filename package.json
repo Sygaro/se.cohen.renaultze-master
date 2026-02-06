@@ -2,9 +2,10 @@
   "name": "se.cohen.renaultze",
   "version": "3.0.0",
   "description": "Modern TypeScript-based Renault & Dacia app for Homey with comprehensive EV support",
-  "main": "app.js",
+  "main": ".homeybuild/app.js",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
+    "build:homey": "tsc",
     "watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",

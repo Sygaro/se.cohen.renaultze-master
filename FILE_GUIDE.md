@@ -1,203 +1,146 @@
-# 📂 File Structure & Content Guide
+# 📂 Developer File Structure Guide
 
-## Overview
+Quick reference for understanding the TypeScript codebase structure.
 
-This document explains what each file does and how they work together.
+## 🏗️ Project Structure
 
-## 🏗️ Core Configuration Files
+```
+src/                          # TypeScript source code
+├── api/
+│   ├── renault-api-client.ts    # Main API client (~580 lines)
+│   └── __tests__/               # Unit tests
+├── config/
+│   └── renault-config.ts        # Locale & model configurations
+├── drivers/                  # Homey device drivers
+│   ├── renault-zoe/
+│   │   ├── device.ts           # Device implementation
+│   │   └── driver.ts           # Pairing & setup
+│   └── dacia-spring/
+│       ├── device.ts
+│       └── driver.ts
+└── types/
+    └── renault-api.types.ts    # TypeScript type definitions
 
-### `tsconfig.json`
-**Purpose:** TypeScript compiler configuration  
-**Key Settings:**
-- Strict mode enabled (catches more bugs)
-- ES2022 target (modern JavaScript)
-- Output to `dist/` directory
-- Source maps for debugging
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "strict": true,
-    "outDir": "./dist"
-  }
-}
+dist/                         # Compiled JavaScript (generated)
+.homeybuild/                  # Homey build output (generated)
 ```
 
-### `jest.config.js`
-**Purpose:** Test framework configuration  
-**Key Settings:**
-- TypeScript support via ts-jest
-- 70% coverage threshold
-- Auto-clear mocks between tests
+## 📝 Configuration Files
 
-### `package.json` (new)
-**Purpose:** Project dependencies and scripts  
-**Scripts:**
+### `tsconfig.json`
+Main TypeScript compiler configuration:
+- **Target:** ES2022
+- **Strict mode:** Enabled
+- **Output:** `.homeybuild/` for Homey
+- **Source maps:** Enabled for debugging
+
+### `tsconfig.build.json`
+Alternative build config that outputs to `dist/` for testing.
+
+### `jest.config.js`
+Test framework configuration with TypeScript support via ts-jest.
+
+### `package.json`
+Dependencies and NPM scripts:
 - `npm run build` - Compile TypeScript
 - `npm test` - Run tests
 - `npm run watch` - Auto-rebuild on changes
 - `npm run lint` - Check code quality
 
-**Key Dependencies:**
-- `typescript@5.3.3` - TypeScript compiler
-- `jest@29.7.0` - Testing framework
-- `axios@1.6.7` - HTTP client
-- `homey@3.0.0` - Homey SDK
 
-## 🎯 Type Definitions
+## 🎯 Key Source Files
 
-### `src/types/renault-api.types.ts`
-**Purpose:** All TypeScript interfaces for Renault API  
-**Size:** ~300 lines  
-**What it defines:**
+### `src/types/renault-api.types.ts` (~300 lines)
+All TypeScript interfaces and types:
+- Authentication types (Gigya, Kamereon)
+- Vehicle data types (Battery, Location, HVAC)
+- Configuration types (Locale, Model capabilities)
+- API response wrappers
 
-#### Authentication Types
+### `src/config/renault-config.ts` (~400 lines)
+Configuration data:
+- **Locale configs** for 29+ countries (API keys, endpoints)
+- **Model capabilities** matrix (which features each model supports)
+- Helper functions to get config by locale/model
+
+### `src/api/renault-api-client.ts` (~580 lines)
+Main API client with:
+- Authentication & token management
+- Automatic token caching and refresh
+- All Renault API endpoints (battery, location, HVAC, charging)
+- Smart fallback mechanisms
+- Full TypeScript type safety
+
+### `src/drivers/renault-zoe/device.ts` (~370 lines)
+Homey device driver:
+- Device lifecycle (init, destroy)
+- Capability management
+- Data polling (every 7 minutes)
+- Flow card actions (HVAC, charging)
+- Error handling
+
+### `src/drivers/renault-zoe/driver.ts` (~90 lines)
+Homey pairing flow:
+- User authentication
+- Vehicle selection
+- Device settings
+
+## 🧪 Testing
+
+### `src/api/__tests__/renault-api-client.test.ts`
+Comprehensive unit tests:
+- 14 test cases
+- Authentication, vehicle data, actions
+- Mocked HTTP responses
+- 85%+ code coverage
+
+## 🔄 Build Process
+
+```bash
+npm run build
+```
+
+Compiles: `src/**/*.ts` → `.homeybuild/**/*.js`
+
+The `.homeybuild/` directory is used by Homey when running the app.
+
+## 📚 Documentation
+
+- **README.md** - Main documentation, quick start, features
+- **FILE_GUIDE.md** - This file (developer reference)
+- **CODE_OF_CONDUCT.md** - Community guidelines
+- **CONTRIBUTING.md** - How to contribute
+- **LICENSE** - LGPL-3.0
+
+## 🔍 Important Patterns
+
+### API Response Pattern
+All API methods return standardized responses:
 ```typescript
-interface GigyaCredentials {
-  username: string;
-  password: string;
-}
-
-interface GigyaResponse {
-  sessionInfo: {
-    cookieValue: string;
-  };
-  UID: string;
+interface ApiResponse<T> {
+  status: 'ok' | 'error' | 'notSupported';
+  data: T | null;
+  error?: string;
 }
 ```
 
-#### Vehicle Data Types
+### Capability Detection
+Models have different features. Use model capabilities:
 ```typescript
-interface BatteryStatusResponse {
-  data: {
-    attributes: {
-      batteryLevel: number;
-      batteryTemperature: number;
-      plugStatus: 0 | 1;
-      chargingStatus: -1.0 | 1.0;
-      // ... more fields
-    };
-  };
-}
-
-interface ChargeModeResponse {
-  data: {
-    attributes: {
-      chargeMode: 'always' | 'schedule_mode';
-    };
-  };
+const capabilities = getCapabilitiesForModel('X102VE');
+if (capabilities.supportsChargeMode) {
+  // Only call charge mode API if model supports it
 }
 ```
 
-#### Configuration Types
-```typescript
-interface LocaleConfig {
-  gigyaApiKey: string;
-  gigyaRootUrl: string;
-  kamereonApiKey: string;
-  kamereonRootUrl: string;
-}
+### Token Caching
+API client automatically caches authentication tokens:
+- Gigya token: 900 seconds
+- Kamereon token: Expires based on JWT
 
-interface ModelCapabilities {
-  hvac: boolean;
-  chargeMode: boolean;
-  location: boolean;
-  cockpit: boolean;
-  lock: boolean;
-}
-```
+---
 
-**Used by:** API client, config, drivers
-
-## ⚙️ Configuration
-
-### `src/config/renault-config.ts`
-**Purpose:** All configuration data for locales and models  
-**Size:** ~400 lines  
-
-#### What it contains:
-
-**1. Locale Configurations (29 countries)**
-```typescript
-export const LOCALE_CONFIGS: { [key: string]: LocaleConfig } = {
-  'sv-SE': {
-    gigyaApiKey: 'YOUR_API_KEY',
-    gigyaRootUrl: 'https://accounts.eu1.gigya.com',
-    kamereonApiKey: 'YOUR_API_KEY', 
-    kamereonRootUrl: 'https://api-wired-prod-1-euw1.wrd-aws.com'
-  },
-  // ... 28 more countries
-}
-```
-
-**2. Model Capabilities Matrix**
-```typescript
-export const MODEL_CAPABILITIES: { [key: string]: ModelCapabilities } = {
-  'X101VE': { // Zoe Phase 1
-    hvac: true,
-    chargeMode: false,
-    location: true,
-    cockpit: true,
-    lock: false
-  },
-  'X102VE': { // Zoe Phase 2
-    hvac: true,
-    chargeMode: true,
-    location: true,
-    cockpit: true,
-    lock: true
-  },
-  // ... more models
-}
-```
-
-**3. Helper Functions**
-```typescript
-getLocaleConfig(locale: string): LocaleConfig
-getModelCapabilities(modelCode: string): ModelCapabilities
-```
-
-**Used by:** API client
-
-## 🌐 API Client
-
-### `src/api/renault-api-client.ts`
-**Purpose:** Complete Renault API client with authentication, caching, and all endpoints  
-**Size:** ~600 lines  
-**Architecture:** Modern async/await with full type safety
-
-#### Class Structure
-
-```typescript
-export class RenaultApiClient {
-  // Authentication state
-  private gigyaToken?: string;
-  private gigyaTokenExpiry?: Date;
-  private kamereonToken?: string;
-  private kamereonTokenExpiry?: Date;
-  
-  // User & vehicle state
-  private accountId?: string;
-  private vehicles?: VehicleInfo[];
-  private selectedVin?: string;
-  private selectedModelCode?: string;
-  
-  constructor(credentials: GigyaCredentials, locale: string);
-}
-```
-
-#### Key Methods
-
-**Authentication:**
-```typescript
-login(): Promise<void>
-  -> Logs into Gigya
-  -> Caches token for 900s
-  
-getKamereonToken(): Promise<string>
-  -> Exchanges Gigya token for Kamereon JWT
-  -> Auto-refreshes when expired
+For detailed API usage examples, see [README.md](README.md).
 ```
 
 **Account & Vehicles:**
