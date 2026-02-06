@@ -290,6 +290,56 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     this.log('MyDevice settings where changed');
+    
+    // Check if username or password changed
+    if (changedKeys.includes('username') || changedKeys.includes('password')) {
+      this.log('Credentials changed, attempting re-authentication');
+      
+      try {
+        const settings = this.getSettings();
+        let renaultApi = new api.RenaultApi(settings);
+        
+        // Decrypt old credentials to check if they're actually different
+        const oldUsername = oldSettings.username ? renaultApi.decrypt(oldSettings.username) : '';
+        const oldPassword = oldSettings.password ? renaultApi.decrypt(oldSettings.password) : '';
+        
+        // Get new credentials (they come as plain text from settings form)
+        const newUsername = newSettings.username || oldUsername;
+        const newPassword = newSettings.password || oldPassword;
+        
+        // Only re-authenticate if credentials actually changed
+        if (newUsername !== oldUsername || newPassword !== oldPassword) {
+          const result = await renaultApi.reAuthenticate(newUsername, newPassword);
+          
+          if (result.status === 'ok') {
+            this.log('Re-authentication successful');
+            
+            // Update settings with encrypted credentials and account info
+            await this.setSettings({
+              username: renaultApi.settings.username,
+              password: renaultApi.settings.password,
+              accountId: result.data.accountId,
+              country: result.data.country,
+              locale: result.data.locale
+            });
+            
+            // Fetch new data immediately
+            await this.fetchData();
+            
+            // Notify user of success
+            await this.homey.notifications.createNotification({
+              excerpt: 'Re-authentication successful for ' + this.getName()
+            });
+          }
+        }
+      } catch (error) {
+        this.error('Re-authentication failed:', error);
+        await this.homey.notifications.createNotification({
+          excerpt: 'Re-authentication failed for ' + this.getName() + ': ' + error.message
+        });
+        throw new Error('Re-authentication failed: ' + error.message);
+      }
+    }
   }
 
   async onRenamed(name) {

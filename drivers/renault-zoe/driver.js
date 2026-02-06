@@ -69,7 +69,7 @@ module.exports = class RenaultZoeDriver extends Homey.Driver {
                 vin: myDevice.vin,
                 modelCode: myDevice.modelCode,
                 model: myDevice.model,
-                brand: myDevice.brandull
+                brand: myDevice.brand
               }
             }
           });
