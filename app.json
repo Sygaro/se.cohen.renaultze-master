@@ -63,6 +63,38 @@
   },
   "source": "https://github.com/bypo/se.cohen.renaultze-master",
   "homepage": "https://github.com/joco73/se.cohen.renaultze-master#readme",
+  "settings": [
+    {
+      "id": "username",
+      "type": "text",
+      "title": {
+        "en": "Email address",
+        "sv": "E-postadress",
+        "no": "E-postadresse"
+      },
+      "value": "",
+      "hint": {
+        "en": "Your Renault/Dacia account email address. Used for all vehicles.",
+        "sv": "Din Renault/Dacia-kontos e-postadress. Används för alla fordon.",
+        "no": "Din Renault/Dacia-konto e-postadresse. Brukes for alle kjøretøy."
+      }
+    },
+    {
+      "id": "password",
+      "type": "password",
+      "title": {
+        "en": "Password",
+        "sv": "Lösenord",
+        "no": "Passord"
+      },
+      "value": "",
+      "hint": {
+        "en": "Your Renault/Dacia account password.",
+        "sv": "Ditt Renault/Dacia-kontolösenord.",
+        "no": "Ditt Renault/Dacia-konto passord."
+      }
+    }
+  ],
   "flow": {
     "triggers": [
       {
@@ -431,49 +463,59 @@
         {
           "type": "group",
           "label": {
-            "en": "Account Settings",
-            "sv": "Kontoinställningar",
-            "no": "Kontoinnstillinger"
+            "en": "Vehicle Information",
+            "sv": "Fordonsinformation",
+            "no": "Kjøretøyinformasjon"
           },
           "children": [
             {
-              "id": "username",
-              "type": "text",
+              "id": "vin",
+              "type": "label",
               "label": {
-                "en": "Email address",
-                "sv": "E-postadress",
-                "no": "E-postadresse"
+                "en": "VIN",
+                "sv": "VIN",
+                "no": "VIN"
               },
-              "value": "",
-              "hint": {
-                "en": "Your Dacia account email address",
-                "sv": "Din Dacia-kontos e-postadress",
-                "no": "Din Dacia-konto e-postadresse"
-              }
+              "value": ""
             },
             {
-              "id": "password",
-              "type": "password",
+              "id": "modelCode",
+              "type": "label",
               "label": {
-                "en": "Password",
-                "sv": "Lösenord",
-                "no": "Passord"
+                "en": "Model Code",
+                "sv": "Modellkod",
+                "no": "Modellkode"
               },
-              "value": "",
-              "hint": {
-                "en": "Your Dacia account password. Changing this will trigger re-authentication.",
-                "sv": "Ditt Dacia-kontolösenord. Ändring av detta utlöser omautentisering.",
-                "no": "Ditt Dacia-konto passord. Endring av dette vil utløse re-autentisering."
-              }
+              "value": ""
+            },
+            {
+              "id": "model",
+              "type": "label",
+              "label": {
+                "en": "Model",
+                "sv": "Modell",
+                "no": "Modell"
+              },
+              "value": ""
+            },
+            {
+              "id": "brand",
+              "type": "label",
+              "label": {
+                "en": "Brand",
+                "sv": "Märke",
+                "no": "Merke"
+              },
+              "value": ""
             }
           ]
         },
         {
           "type": "group",
           "label": {
-            "en": "Account Information (Read-only)",
-            "sv": "Kontoinformation (Skrivskyddad)",
-            "no": "Kontoinformasjon (Skrivebeskyttet)"
+            "en": "Account Information",
+            "sv": "Kontoinformation",
+            "no": "Kontoinformasjon"
           },
           "children": [
             {
@@ -484,7 +526,12 @@
                 "sv": "Konto-ID",
                 "no": "Konto-ID"
               },
-              "value": ""
+              "value": "",
+              "hint": {
+                "en": "To change account credentials, go to App Settings",
+                "sv": "För att ändra kontoinformation, gå till Appinställningar",
+                "no": "For å endre kontoinformasjon, gå til App-innstillinger"
+              }
             },
             {
               "id": "country",
@@ -503,26 +550,6 @@
                 "en": "Locale",
                 "sv": "Språk",
                 "no": "Språk"
-              },
-              "value": ""
-            },
-            {
-              "id": "vin",
-              "type": "label",
-              "label": {
-                "en": "VIN",
-                "sv": "VIN",
-                "no": "VIN"
-              },
-              "value": ""
-            },
-            {
-              "id": "modelCode",
-              "type": "label",
-              "label": {
-                "en": "Model Code",
-                "sv": "Modellkod",
-                "no": "Modellkode"
               },
               "value": ""
             }
@@ -618,49 +645,59 @@
         {
           "type": "group",
           "label": {
-            "en": "Account Settings",
-            "sv": "Kontoinställningar",
-            "no": "Kontoinnstillinger"
+            "en": "Vehicle Information",
+            "sv": "Fordonsinformation",
+            "no": "Kjøretøyinformasjon"
           },
           "children": [
             {
-              "id": "username",
-              "type": "text",
+              "id": "vin",
+              "type": "label",
               "label": {
-                "en": "Email address",
-                "sv": "E-postadress",
-                "no": "E-postadresse"
+                "en": "VIN",
+                "sv": "VIN",
+                "no": "VIN"
               },
-              "value": "",
-              "hint": {
-                "en": "Your Renault account email address",
-                "sv": "Din Renault-kontos e-postadress",
-                "no": "Din Renault-konto e-postadresse"
-              }
+              "value": ""
             },
             {
-              "id": "password",
-              "type": "password",
+              "id": "modelCode",
+              "type": "label",
               "label": {
-                "en": "Password",
-                "sv": "Lösenord",
-                "no": "Passord"
+                "en": "Model Code",
+                "sv": "Modellkod",
+                "no": "Modellkode"
               },
-              "value": "",
-              "hint": {
-                "en": "Your Renault account password. Changing this will trigger re-authentication.",
-                "sv": "Ditt Renault-kontolösenord. Ändring av detta utlöser omautentisering.",
-                "no": "Ditt Renault-konto passord. Endring av dette vil utløse re-autentisering."
-              }
+              "value": ""
+            },
+            {
+              "id": "model",
+              "type": "label",
+              "label": {
+                "en": "Model",
+                "sv": "Modell",
+                "no": "Modell"
+              },
+              "value": ""
+            },
+            {
+              "id": "brand",
+              "type": "label",
+              "label": {
+                "en": "Brand",
+                "sv": "Märke",
+                "no": "Merke"
+              },
+              "value": ""
             }
           ]
         },
         {
           "type": "group",
           "label": {
-            "en": "Account Information (Read-only)",
-            "sv": "Kontoinformation (Skrivskyddad)",
-            "no": "Kontoinformasjon (Skrivebeskyttet)"
+            "en": "Account Information",
+            "sv": "Kontoinformation",
+            "no": "Kontoinformasjon"
           },
           "children": [
             {
@@ -671,7 +708,12 @@
                 "sv": "Konto-ID",
                 "no": "Konto-ID"
               },
-              "value": ""
+              "value": "",
+              "hint": {
+                "en": "To change account credentials, go to App Settings",
+                "sv": "För att ändra kontoinformation, gå till Appinställningar",
+                "no": "For å endre kontoinformasjon, gå til App-innstillinger"
+              }
             },
             {
               "id": "country",
@@ -690,26 +732,6 @@
                 "en": "Locale",
                 "sv": "Språk",
                 "no": "Språk"
-              },
-              "value": ""
-            },
-            {
-              "id": "vin",
-              "type": "label",
-              "label": {
-                "en": "VIN",
-                "sv": "VIN",
-                "no": "VIN"
-              },
-              "value": ""
-            },
-            {
-              "id": "modelCode",
-              "type": "label",
-              "label": {
-                "en": "Model Code",
-                "sv": "Modellkod",
-                "no": "Modellkode"
               },
               "value": ""
             }

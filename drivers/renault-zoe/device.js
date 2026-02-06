@@ -27,6 +27,19 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
     this.pollingInterval = this.homey.setInterval(() => { this.fetchData(); }, 420000);
   }
 
+  // Helper method to get combined settings (app + device)
+  getCombinedSettings() {
+    const deviceSettings = this.getSettings();
+    const appUsername = this.homey.settings.get('username');
+    const appPassword = this.homey.settings.get('password');
+    
+    return {
+      username: appUsername || deviceSettings.username,
+      password: appPassword || deviceSettings.password,
+      ...deviceSettings
+    };
+  }
+
   SetCapabilities() {
     if (this.hasCapability('charge_mode') === false) {
       this.log('Added charge_mode capabillity ');
@@ -58,7 +71,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
       const HomeyLat = this.homey.geolocation.getLatitude();
       const HomeyLng = this.homey.geolocation.getLongitude();
       const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(settings);
+      let renaultApi = new api.RenaultApi(this.getCombinedSettings());
       const setLocation = renaultApi.calculateHome(HomeyLat, HomeyLng, lat, lng);
       await this.setCapabilityValue('measure_isHome', setLocation <= 1);
       await this.setCapabilityValue('measure_location', 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng);
@@ -74,7 +87,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async chargeModeActionRunListener(args, state) {
     this.log('-> chargeModeActionRunListener run');
     const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(settings);
+    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
     renaultApi.setChargeMode(args.mode)
       .then(result => {
         this.log(result);
@@ -86,7 +99,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
     this.log('-> onCapabilityChargeButton is clicked');
       this.log('Start Charging');
         const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(settings);
+        let renaultApi = new api.RenaultApi(this.getCombinedSettings());
         renaultApi.chargingStart()
           .then(result => {
             this.log(result);
@@ -103,7 +116,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async chargeStopActionRunListener(opts) {
       this.log('Stop Charging');
       const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(settings);
+      let renaultApi = new api.RenaultApi(this.getCombinedSettings());
       renaultApi.chargingStop()
         .then(result => {
           this.log(result);
@@ -121,7 +134,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async onCapabilityPicker(opts) {
     this.log('-> onCapabilityPicker is changeed');
     const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(settings);
+    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
     renaultApi.setChargeMode(opts)
       .then(result => {
         this.log(result);
@@ -136,7 +149,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
       let batterylevel = this.getCapabilityValue('measure_battery');
       if (batterylevel > 24) { // Zoe internal app can not run heater below 40 - we will be a bit nicer
         const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(settings);
+        let renaultApi = new api.RenaultApi(this.getCombinedSettings());
         renaultApi.startAC(21)
           .then(result => {
             this.log(result);
@@ -188,9 +201,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
 
   async fetchData() {
     this.log('-> enter fetchCarData');
-    const settings = this.getSettings();
-    this.log(settings);
-    let renaultApi = new api.RenaultApi(settings);
+    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
     renaultApi.getBatteryStatus()
       .then(result => {
         this.log(result);
@@ -289,55 +300,8 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    this.log('MyDevice settings where changed');
-    
-    // Check if username or password changed
-    if (changedKeys.includes('username') || changedKeys.includes('password')) {
-      this.log('Credentials changed, attempting re-authentication');
-      
-      try {
-        const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(settings);
-        
-        // Get new credentials (they come as plain text from settings form)
-        const newUsername = newSettings.username;
-        const newPassword = newSettings.password;
-        
-        // Validate that we have credentials
-        if (!newUsername || !newPassword) {
-          throw new Error('Username and password are required');
-        }
-        
-        const result = await renaultApi.reAuthenticate(newUsername, newPassword);
-        
-        if (result.status === 'ok') {
-          this.log('Re-authentication successful');
-          
-          // Update settings with encrypted credentials and account info
-          await this.setSettings({
-            username: renaultApi.settings.username,
-            password: renaultApi.settings.password,
-            accountId: result.data.accountId,
-            country: result.data.country,
-            locale: result.data.locale
-          });
-          
-          // Fetch new data immediately
-          await this.fetchData();
-          
-          // Notify user of success
-          await this.homey.notifications.createNotification({
-            excerpt: 'Re-authentication successful for ' + this.getName()
-          });
-        }
-      } catch (error) {
-        this.error('Re-authentication failed:', error);
-        await this.homey.notifications.createNotification({
-          excerpt: 'Re-authentication failed for ' + this.getName() + ': ' + error.message
-        });
-        throw new Error('Re-authentication failed: ' + error.message);
-      }
-    }
+    this.log('Device settings changed:', changedKeys);
+    // Note: Account credentials are managed in App Settings
   }
 
   async onRenamed(name) {
