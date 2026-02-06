@@ -300,38 +300,36 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
         const settings = this.getSettings();
         let renaultApi = new api.RenaultApi(settings);
         
-        // Decrypt old credentials to check if they're actually different
-        const oldUsername = oldSettings.username ? renaultApi.decrypt(oldSettings.username) : '';
-        const oldPassword = oldSettings.password ? renaultApi.decrypt(oldSettings.password) : '';
-        
         // Get new credentials (they come as plain text from settings form)
-        const newUsername = newSettings.username || oldUsername;
-        const newPassword = newSettings.password || oldPassword;
+        const newUsername = newSettings.username;
+        const newPassword = newSettings.password;
         
-        // Only re-authenticate if credentials actually changed
-        if (newUsername !== oldUsername || newPassword !== oldPassword) {
-          const result = await renaultApi.reAuthenticate(newUsername, newPassword);
+        // Validate that we have credentials
+        if (!newUsername || !newPassword) {
+          throw new Error('Username and password are required');
+        }
+        
+        const result = await renaultApi.reAuthenticate(newUsername, newPassword);
+        
+        if (result.status === 'ok') {
+          this.log('Re-authentication successful');
           
-          if (result.status === 'ok') {
-            this.log('Re-authentication successful');
-            
-            // Update settings with encrypted credentials and account info
-            await this.setSettings({
-              username: renaultApi.settings.username,
-              password: renaultApi.settings.password,
-              accountId: result.data.accountId,
-              country: result.data.country,
-              locale: result.data.locale
-            });
-            
-            // Fetch new data immediately
-            await this.fetchData();
-            
-            // Notify user of success
-            await this.homey.notifications.createNotification({
-              excerpt: 'Re-authentication successful for ' + this.getName()
-            });
-          }
+          // Update settings with encrypted credentials and account info
+          await this.setSettings({
+            username: renaultApi.settings.username,
+            password: renaultApi.settings.password,
+            accountId: result.data.accountId,
+            country: result.data.country,
+            locale: result.data.locale
+          });
+          
+          // Fetch new data immediately
+          await this.fetchData();
+          
+          // Notify user of success
+          await this.homey.notifications.createNotification({
+            excerpt: 'Re-authentication successful for ' + this.getName()
+          });
         }
       } catch (error) {
         this.error('Re-authentication failed:', error);
