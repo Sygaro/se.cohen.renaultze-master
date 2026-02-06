@@ -299,10 +299,18 @@ export class RenaultApiClient {
         console.log('Using charging-settings endpoint');
         return { status: 'ok', data: chargeMode };
       } catch (settingsError) {
-        // Fallback to original charge-mode endpoint
-        console.log('Falling back to charge-mode endpoint');
-        const data = await this.kamereonGet<ChargeModeResponse>('charge-mode', 1);
-        return { status: 'ok', data };
+        // Only fallback on 400/404 errors (deprecated/unavailable endpoint)
+        // Don't fallback on 5xx errors (server issues) - those should be retried
+        if (axios.isAxiosError(settingsError)) {
+          const status = settingsError.response?.status;
+          if (status === 400 || status === 404) {
+            console.log('Endpoint not available (400/404), falling back to charge-mode endpoint');
+            const data = await this.kamereonGet<ChargeModeResponse>('charge-mode', 1);
+            return { status: 'ok', data };
+          }
+        }
+        // For other errors (including 5xx), throw to outer catch
+        throw settingsError;
       }
     } catch (error) {
       return this.handleError(error);

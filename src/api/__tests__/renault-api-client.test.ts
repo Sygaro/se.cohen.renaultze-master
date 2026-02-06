@@ -149,11 +149,22 @@ describe('RenaultApiClient', () => {
       expect(result.data).toBeNull();
     });
 
-    it('should get charge mode with fallback', async () => {
-      // First call fails (charging-settings not available)
+    it('should get charge mode with fallback on 400/404 errors', async () => {
+      // Mock axios.isAxiosError to recognize our error objects
+      jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
+      
+      // First call fails with 404 (charging-settings not available)
       // Second call succeeds (charge-mode endpoint)
+      const axiosError404 = {
+        isAxiosError: true,
+        response: {
+          status: 404,
+          data: { error: 'Not found' },
+        },
+      };
+      
       mockedAxios.get = jest.fn()
-        .mockRejectedValueOnce(new Error('404'))
+        .mockRejectedValueOnce(axiosError404)
         .mockResolvedValueOnce({
           data: {
             data: {
@@ -170,6 +181,32 @@ describe('RenaultApiClient', () => {
       
       expect(result.status).toBe('ok');
       expect(result.data?.data.attributes.chargeMode).toBeTruthy();
+      expect(mockedAxios.get).toHaveBeenCalledTimes(2); // charging-settings + charge-mode
+    });
+
+    it('should NOT fallback on 502 server errors', async () => {
+      // Mock axios.isAxiosError to recognize our error objects
+      jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
+      
+      // 502 errors should be returned as errors, not trigger fallback
+      const axiosError502 = {
+        isAxiosError: true,
+        response: {
+          status: 502,
+          data: { 
+            type: 'TECHNICAL',
+            errors: [{ errorCode: '502000', errorMessage: 'something went wrong' }]
+          },
+        },
+      };
+      
+      mockedAxios.get = jest.fn()
+        .mockRejectedValueOnce(axiosError502);
+
+      const result = await client.getChargeMode();
+      
+      expect(result.status).toBe('error');
+      expect(mockedAxios.get).toHaveBeenCalledTimes(1); // Only charging-settings, no fallback
     });
 
     it('should handle API errors gracefully', async () => {
