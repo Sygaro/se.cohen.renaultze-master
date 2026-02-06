@@ -1,5 +1,40 @@
+# Environment & Config
 /env.json
 /.env.json
+.env
+.env.local
+
+# Dependencies
 /node_modules/
+
+# Build output
+/dist/
+*.js
+*.js.map
+*.d.ts
+
+# Keep specific JS files
+!jest.config.js
+
+# Test
 /test.js
+coverage/
+.nyc_output/
+
+# Homey
 /.homeybuild/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

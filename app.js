@@ -1,33 +1,25 @@
-'use strict';
-
-const Homey = require('homey');
-
-class RenaultZoeApp extends Homey.App {
-  async onInit() {
-    this.log('se.cohen.renaultze has been initialized');
-
-
-    // Actions
-    this.chargeModeAction = this.homey.flow.getActionCard('set_charge_mode')
-      .registerRunListener((args, state) => { return args.device.chargeModeActionRunListener(args, state); });
-
-    this.chargeStartAction = this.homey.flow.getActionCard('start-charge')
-      .registerRunListener((args, state) => { return args.device.chargeStartActionRunListener(args, state); });
-
-    this.chargeStartAction = this.homey.flow.getActionCard('stop-charge')
-    .registerRunListener((args, state) => { return args.device.chargeStopActionRunListener(args, state); });
-
-    // Conditions
-    const isCharging = this.homey.flow.getConditionCard('is_charging')
-      .registerRunListener((args) => args.device.getCapabilityValue('measure_chargingStatus'));
-
-    const isPluggedIn = this.homey.flow.getConditionCard('is_pluggedIn')
-      .registerRunListener((args) => args.device.getCapabilityValue('measure_plugStatus'));
-
-    const isHome = this.homey.flow.getConditionCard('is_home')
-      .registerRunListener((args) => args.device.getCapabilityValue('measure_isHome'));
-
-  }
+"use strict";
+/**
+ * Renault & Dacia Homey App v3.0
+ * TypeScript-based app with modern architecture
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const homey_1 = require("homey");
+class RenaultApp extends homey_1.App {
+    /**
+     * onInit is called when the app is initialized.
+     */
+    async onInit() {
+        this.log('Renault & Dacia app v3.0 (TypeScript) has been initialized');
+        // Register flow cards and other app-level functionality here if needed
+        this.log('App initialization complete');
+    }
+    /**
+     * onUninit is called when the app is about to be destroyed
+     */
+    async onUninit() {
+        this.log('Renault & Dacia app is shutting down');
+    }
 }
-
-module.exports = RenaultZoeApp;
+module.exports = RenaultApp;
+//# sourceMappingURL=app.js.map

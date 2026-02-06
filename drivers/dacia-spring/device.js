@@ -1,354 +1,371 @@
-'use strict';
-
-const Homey = require('homey');
-const api = require('../../lib/api');
-
-module.exports = class DaciaSpringDevice extends Homey.Device {
-
-  async onInit() {
-    this.log('Dacia Spring has been initialized for: ', this.getName());
-
-    this.SetCapabilities();
-
-    this.hvacState = 'off';
-    this.setCapabilityValue('onoff', false);
-    this.registerCapabilityListener('onoff', this.onCapabilityButton.bind(this));
-
-    this.chargeStart = 'off';
-
-    this.setCapabilityValue('charge_start', false);
-    this.registerCapabilityListener('charge_start', this.onCapabilityChargeStartButton.bind(this));
-
-    this.registerCapabilityListener('measure_totalMileage', this.onCapabilityChargeStartButton.bind(this));
-
-
-    this.fetchData()
-      .catch(err => {
-        this.error(err);
-      });
-
-    this.pollingInterval = this.homey.setInterval(() => { this.fetchData(); }, 420000);
-  }
-
-  async onSettings({ oldSettings, newSettings, changedKeys }) {
-    this.log('Settings were changed', changedKeys);
-    
-    // If username or password changed, clear cached tokens to force re-authentication
-    if (changedKeys.includes('username') || changedKeys.includes('password')) {
-      this.log('Credentials changed, will re-authenticate on next API call');
-      // Token will be refreshed automatically on next API call due to the caching mechanism in api.js
+"use strict";
+/**
+ * Modern Dacia Spring Device Driver
+ * TypeScript implementation with full type safety
+ */
+const homey_1 = require("homey");
+const renault_api_client_1 = require("../../api/renault-api-client");
+class DaciaSpringDevice extends homey_1.Device {
+    api;
+    pollingInterval;
+    hvacTimeout;
+    /**
+     * Device initialization
+     */
+    async onInit() {
+        this.log(`Dacia Spring Device initialized: ${this.getName()}`);
+        // Setup API client
+        await this.setupApiClient();
+        // Setup capabilities
+        await this.setupCapabilities();
+        // Register capability listeners
+        this.registerCapabilityListeners();
+        // Initial data fetch
+        await this.fetchData();
+        // Setup polling (every 7 minutes)
+        this.pollingInterval = setInterval(() => {
+            this.fetchData().catch((err) => {
+                this.error('Polling error:', err);
+            });
+        }, 420000);
     }
-  }
-
-  SetCapabilities() {
-
-    if (this.hasCapability('charge_start') === false) {
-      this.log('Added charge_start capabillity ');
-      this.addCapability('charge_start');
-    }
-    if (this.hasCapability('measure_chargingStatus') === false) {
-      this.log('Added measure_chargingStatus capabillity ');
-      this.addCapability('measure_chargingStatus');
-    }
-    if (this.hasCapability('measure_isHome') === false) {
-      this.log('Added measure_isHome capabillity ');
-      this.addCapability('measure_isHome');
-    }
-    if (this.hasCapability('measure_location') === false) {
-      this.log('Added measure_location capabillity ');
-      this.addCapability('measure_location');
-    }
-    if (this.hasCapability('measure_location_latitude') === false) {
-      this.log('Added measure_location_latitude capabillity ');
-      this.addCapability('measure_location_latitude');
-    }
-    if (this.hasCapability('measure_location_longitude') === false) {
-      this.log('Added measure_location_longitude capabillity ');
-      this.addCapability('measure_location_longitude');
-    }
-    if (this.hasCapability('measure_batteryCapacity') === false) {
-      this.log('Added measure_batteryCapacity capabillity ');
-      this.addCapability('measure_batteryCapacity');
-    }
-    if (this.hasCapability('measure_batteryAvailableEnergy') === false) {
-      this.log('Added measure_batteryAvailableEnergy capabillity ');
-      this.addCapability('measure_batteryAvailableEnergy');
-    }
-    if (this.hasCapability('measure_chargingInstantaneousPower') === false) {
-      this.log('Added measure_chargingInstantaneousPower capabillity ');
-      this.addCapability('measure_chargingInstantaneousPower');
-    }
-    if (this.hasCapability('measure_gpsDirection') === false) {
-      this.log('Added measure_gpsDirection capabillity ');
-      this.addCapability('measure_gpsDirection');
-    }
-    if (this.hasCapability('measure_lastUpdateTime') === false) {
-      this.log('Added measure_lastUpdateTime capabillity ');
-      this.addCapability('measure_lastUpdateTime');
-    }
-  }
-
-  async setLocation(result) {
-    this.log('-> setLocation run');
-    try {
-      let lat = result.data.data.attributes.gpsLatitude;
-      let lng = result.data.data.attributes.gpsLongitude;
-      let direction = result.data.data.attributes.gpsDirection;
-      let lastUpdate = result.data.data.attributes.lastUpdateTime;
-      
-      const HomeyLat = this.homey.geolocation.getLatitude();
-      const HomeyLng = this.homey.geolocation.getLongitude();
-      const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(this.getSettings());
-      const setLocation = renaultApi.calculateHome(HomeyLat, HomeyLng, lat, lng);
-      
-      await this.setCapabilityValue('measure_isHome', setLocation <= 1);
-      await this.setCapabilityValue('measure_location', 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng);
-      await this.setCapabilityValue('measure_location_latitude', String(lat));
-      await this.setCapabilityValue('measure_location_longitude', String(lng));
-      
-      if (direction !== null && direction !== undefined) {
-        await this.setCapabilityValue('measure_gpsDirection', direction);
-      }
-      
-      if (lastUpdate) {
-        await this.setCapabilityValue('measure_lastUpdateTime', lastUpdate);
-      }
-    } catch (error) {
-      this.homey.app.log(error);
-    }
-  }
-
-  async chargeStartActionRunListener(args, state) {
-    this.log('-> chargeStartActionRunListener run');
-    const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(this.getSettings());
-    renaultApi.chargingStart()
-      .then(result => {
-        this.log(result);
-        this.setCapabilityValue('charge_start', true);
-      });
-  }
-
-
-  async chargeStopActionRunListener(args, state) {
-    this.log('-> chargeStopActionRunListener run');
-    const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(this.getSettings());
-    renaultApi.chargingStop()
-      .then(result => {
-        this.log(result);
-        this.setCapabilityValue('charge_start', false);
-      });
-  }
-
- async onCapabilityButton(opts) {
-    this.log('-> onCapabilityButton is clicked');
-    if (opts === true) {
-      this.log('Start AC');
-      let batterylevel = this.getCapabilityValue('measure_battery');
-      if (batterylevel > 24) { // Zoe internal app can not run heater below 40 - we will be a bit nicer
+    /**
+     * Setup API client with credentials
+     */
+    async setupApiClient() {
         const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(this.getSettings());
-        renaultApi.startAC(21)
-          .then(result => {
-            this.log(result);
-            this.setHvacStatus('on');
-            this.data = this.homey.setTimeout(() => { this.setHvacStatus('off'); }, 600000);
-          })
-          .catch((error) => {
-            this.log(error);
-            this.setHvacStatus('off');
-            throw new Error('An error occured when trying to start heater.', error);
-          });
-      }
-      else {
-        this.log('Battery level to low o start.');
-        this.setHvacStatus('off');
-        throw new Error('Your car need some more charging before using heater, not started 25% is needed).');
-      }
+        this.api = new renault_api_client_1.RenaultApiClient({
+            username: settings.username,
+            password: settings.password,
+            accountId: settings.accountId,
+            vin: settings.vin,
+        }, settings.locale || 'sv-SE');
+        // Set vehicle to enable capability detection
+        this.api.setVehicle(settings.vin, settings.modelCode);
+        this.log('API client configured for VIN:', settings.vin);
     }
-    else {
-      this.log('Stop AC');
-      this.setHvacStatus('on');
-      throw new Error('There is no way to stop a stated heater session on current Dacia Spring implementation.');
+    /**
+     * Setup device capabilities
+     */
+    async setupCapabilities() {
+        const capabilities = [
+            'measure_battery',
+            'measure_batteryTemperature',
+            'measure_batteryAutonomy',
+            'measure_batteryAvailableEnergy',
+            'measure_batteryCapacity',
+            'measure_plugStatus',
+            'measure_chargingStatus',
+            'measure_chargingRemainingTime',
+            'measure_chargingInstantaneousPower',
+            'measure_totalMileage',
+            'measure_location',
+            'measure_location_latitude',
+            'measure_location_longitude',
+            'measure_isHome',
+            'charge_mode',
+            'onoff', // For HVAC control
+        ];
+        for (const capability of capabilities) {
+            if (!this.hasCapability(capability)) {
+                try {
+                    await this.addCapability(capability);
+                    this.log(`Added capability: ${capability}`);
+                }
+                catch (err) {
+                    this.error(`Failed to add capability ${capability}:`, err);
+                }
+            }
+        }
     }
-  }
-
-  async onCapabilityChargeStartButton(opts) {
-    this.log('-> onCapabilityChargeButton is clicked');
-    if (opts === true) {
-      this.log('Start Charging');
-        const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(this.getSettings());
-        renaultApi.chargingStart()
-          .then(result => {
-            this.log(result);
-            this.setChargeStatus('on');
-            this.data = this.homey.setTimeout(() => { this.setChargeStatus('off'); }, 600000);
-          })
-          .catch((error) => {
-            this.log(error);
-            this.setChargeStatus('off');
-            throw new Error('An error occured when trying to start charging.', error);
-          });      
+    /**
+     * Register listeners for interactive capabilities
+     */
+    registerCapabilityListeners() {
+        // HVAC control (onoff capability)
+        this.registerCapabilityListener('onoff', async (value) => {
+            return this.onHvacToggle(value);
+        });
+        // Charge mode picker
+        this.registerCapabilityListener('charge_mode', async (value) => {
+            return this.onChargeModeChange(value);
+        });
     }
-    else {
-      this.log('Stop Charging');
-      const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(this.getSettings());
-      renaultApi.chargingStop()
-        .then(result => {
-          this.log(result);
-          this.setChargeStatus('off');
-          this.data = this.homey.setTimeout(() => { this.setChargeStatus('off'); }, 600000);
-        })
-        .catch((error) => {
-          this.log(error);
-          this.setChargeStatus('off');
-          throw new Error('An error occured when trying to stop charging.', error);
-        });      
-    }
-  }
-
-  setHvacStatus(status) {
-    this.log('-> setHvacStatus');
-    this.log({ 'oldValue': this.hvacState, 'newValue': status })
-    this.hvacState = status;
-    if (status === 'on') {
-      this.setCapabilityValue('onoff', true)
-    }
-    else {
-      this.setCapabilityValue('onoff', false)
-    }
-  }
-
-
-  setChargeStatus(status) {
-    this.log('-> setChargeStatus');
-    this.log({ 'oldValue': this.chargeStart, 'newValue': status })
-    this.chargeStart = status;
-    if (status === 'on') {
-      this.setCapabilityValue('onoff', true)
-    }
-    else {
-      this.setCapabilityValue('onoff', false)
-    }
-  }
-
-  async fetchData() {
-    this.log('-> enter fetchCarData');
-    const settings = this.getSettings();
-    this.log(settings);
-    let renaultApi = new api.RenaultApi(this.getSettings());
-
-    
-      renaultApi.getBatteryStatus()
-      .then(result => {
-        this.log('-> enter getBatteryStatus');
-        this.log(result.data);
-        
-        if (result.status == 'notSupported') {
-          this.setCapabilityValue('measure_battery', 0);
-          this.setCapabilityValue('measure_batteryTemperature', 0);
-          this.setCapabilityValue('measure_batteryAvailableEnergy', 0);
-          this.setCapabilityValue('measure_batteryCapacity', 0);
-          this.setCapabilityValue('measure_batteryAutonomy', 0);
-          this.setCapabilityValue('measure_plugStatus', false);
-          this.setCapabilityValue('charge_start', false);
-          this.setCapabilityValue('measure_chargingStatus', false);
-          this.setCapabilityValue('measure_chargingRemainingTime', 0);
-          this.setCapabilityValue('measure_chargingInstantaneousPower', 0);
+    /**
+     * HVAC toggle handler
+     */
+    async onHvacToggle(enable) {
+        if (!this.api) {
+            throw new Error('API client not initialized');
+        }
+        if (enable) {
+            // Check battery level before starting
+            const batteryLevel = this.getCapabilityValue('measure_battery') || 0;
+            if (batteryLevel < 25) {
+                throw new Error(this.homey.__('errors.battery_too_low', { min: 25 }));
+            }
+            // Start HVAC
+            const result = await this.api.startHvac(21);
+            if (result.status !== 'ok') {
+                throw new Error(result.error || 'Failed to start HVAC');
+            }
+            await this.setCapabilityValue('onoff', true);
+            // Auto-turn off after 10 minutes (safety)
+            this.hvacTimeout = setTimeout(() => {
+                this.setCapabilityValue('onoff', false);
+            }, 600000);
+            this.log('HVAC started');
         }
         else {
-          this.setCapabilityValue('measure_battery', result.data.data.attributes["batteryLevel"] ?? 0);
-          this.setCapabilityValue('measure_batteryTemperature', result.data.data.attributes["batteryTemperature"] ?? 20);
-          this.setCapabilityValue('measure_batteryAvailableEnergy', result.data.data.attributes["batteryAvailableEnergy"] ?? 0);
-          this.setCapabilityValue('measure_batteryCapacity', result.data.data.attributes["batteryCapacity"] ?? 0);
-          this.setCapabilityValue('measure_batteryAutonomy', result.data.data.attributes["batteryAutonomy"] ?? 0);
-          
-          let plugStatus = false;
-          if (result.data.data.attributes["plugStatus"] === 1) {
-            plugStatus = true;
-          }
-          this.setCapabilityValue('measure_plugStatus', plugStatus);
-          
-          let chargingRemainingTime = 0;
-          let chargingInstantaneousPower = 0;
-          let chargingStatus = false;
-          if (result.data.data.attributes["chargingStatus"] === 1) {
-            chargingStatus = true;
-            chargingRemainingTime = result.data.data.attributes["chargingRemainingTime"] ?? 0;
-            chargingInstantaneousPower = result.data.data.attributes["chargingInstantaneousPower"] ?? 0;
-            if (renaultApi.reportsChargingPowerInWatts()) {
-              chargingInstantaneousPower = chargingInstantaneousPower / 1000;
+            // Note: Renault API doesn't support stopping HVAC reliably
+            await this.setCapabilityValue('onoff', false);
+            if (this.hvacTimeout) {
+                clearTimeout(this.hvacTimeout);
             }
-          }
-          this.setCapabilityValue('charge_start', chargingStatus);
-          this.setCapabilityValue('measure_chargingStatus', chargingStatus);
-          this.setCapabilityValue('measure_chargingRemainingTime', chargingRemainingTime);
-          this.setCapabilityValue('measure_chargingInstantaneousPower', chargingInstantaneousPower);
+            this.log('HVAC stop requested (may not work on all models)');
         }
-     })
-     .catch((error) => {
-      this.log(error);
-     })
-
-    renaultApi.getCockpit()
-      .then(result => {
-        this.log('-> enter getCockpit');
-        this.log(result.data);
-        if (result.status == 'ok') {
-          this.setCapabilityValue('measure_totalMileage', result.data.data.attributes["totalMileage"] ?? 0);
-        if (renaultApi.supportFuelStatus() == true) {
-          this.setCapabilityValue('measure_batteryAutonomy', result.data.data.attributes["fuelAutonomy"] ?? 0);
-          }
+    }
+    /**
+     * Charge mode change handler
+     */
+    async onChargeModeChange(mode) {
+        if (!this.api) {
+            throw new Error('API client not initialized');
         }
-      })
-    .catch((error) => {
-      this.log(error);
-    });         
-
-    
-    renaultApi.getACStatus()
-      .then(result => {
-        this.log(result);
-        if (result.status == 'ok') {
-          this.setHvacStatus(result.data.hvacStatus);
+        const apiMode = mode === 'schedule_mode' ? 'schedule_mode' : 'always_charging';
+        const result = await this.api.setChargeMode(apiMode);
+        if (result.status !== 'ok') {
+            throw new Error(result.error || 'Failed to set charge mode');
         }
-      })
-    .catch((error) => {
-      this.log(error);
-    });   
-
-    renaultApi.getLocation()
-      .then(result => {
-      this.log(result);
-      if (result.status == 'ok') {
-        this.setLocation(result.data);
+        await this.setCapabilityValue('charge_mode', mode);
+        this.log('Charge mode set to:', mode);
+    }
+    /**
+     * Fetch all vehicle data
+     */
+    async fetchData() {
+        if (!this.api) {
+            this.error('API client not initialized');
+            return;
         }
-      })
-    .catch((error) => {
-        this.log(error);
-    });
-
-  }
-
-  async onAdded() {
-    this.log('Dacia Spring has been added');
-  }
-
-  async onSettings({ oldSettings, newSettings, changedKeys }) {
-    this.log('Device settings changed:', changedKeys);
-    // Note: Account credentials are managed in App Settings
-  }
-
-  async onRenamed(name) {
-    this.log('Dacia Spring was renamed');
-  }
-
-  async onDeleted() {
-    this.log('Dacia Spring has been deleted');
-    clearInterval(this.pollingInterval);
-  }
+        this.log('Fetching vehicle data...');
+        try {
+            // Fetch data in parallel for better performance
+            const [battery, chargeMode, cockpit, location] = await Promise.allSettled([
+                this.api.getBatteryStatus(),
+                this.api.getChargeMode(),
+                this.api.getCockpit(),
+                this.api.getLocation(),
+            ]);
+            // Update battery data
+            if (battery.status === 'fulfilled') {
+                await this.updateBatteryData(battery.value);
+            }
+            else {
+                this.error('Battery fetch failed:', battery.reason);
+            }
+            // Update charge mode
+            if (chargeMode.status === 'fulfilled') {
+                await this.updateChargeMode(chargeMode.value);
+            }
+            else {
+                this.error('Charge mode fetch failed:', chargeMode.reason);
+            }
+            // Update cockpit data
+            if (cockpit.status === 'fulfilled') {
+                await this.updateCockpitData(cockpit.value);
+            }
+            else {
+                this.error('Cockpit fetch failed:', cockpit.reason);
+            }
+            // Update location
+            if (location.status === 'fulfilled') {
+                await this.updateLocation(location.value);
+            }
+            else {
+                this.error('Location fetch failed:', location.reason);
+            }
+            this.log('Data fetch completed');
+        }
+        catch (error) {
+            this.error('Critical error during data fetch:', error);
+        }
+    }
+    /**
+     * Update battery-related capabilities
+     */
+    async updateBatteryData(result) {
+        if (result.status === 'notSupported') {
+            this.log('Battery status not supported for this vehicle');
+            return;
+        }
+        if (result.status !== 'ok' || !result.data) {
+            this.error('Invalid battery data');
+            return;
+        }
+        const attrs = result.data.data.attributes;
+        await this.setCapabilityValue('measure_battery', attrs.batteryLevel || 0);
+        if (attrs.batteryTemperature !== undefined) {
+            await this.setCapabilityValue('measure_batteryTemperature', attrs.batteryTemperature);
+        }
+        await this.setCapabilityValue('measure_batteryAutonomy', attrs.batteryAutonomy || 0);
+        await this.setCapabilityValue('measure_batteryAvailableEnergy', attrs.batteryAvailableEnergy || 0);
+        await this.setCapabilityValue('measure_batteryCapacity', attrs.batteryCapacity || 0);
+        // Plug status
+        const isPlugged = attrs.plugStatus === 1;
+        await this.setCapabilityValue('measure_plugStatus', isPlugged);
+        // Charging status
+        const isCharging = attrs.chargingStatus === 1.0;
+        await this.setCapabilityValue('measure_chargingStatus', isCharging);
+        if (isCharging) {
+            await this.setCapabilityValue('measure_chargingRemainingTime', attrs.chargingRemainingTime || 0);
+            await this.setCapabilityValue('measure_chargingInstantaneousPower', attrs.chargingInstantaneousPower || 0);
+        }
+        else {
+            await this.setCapabilityValue('measure_chargingRemainingTime', 0);
+            await this.setCapabilityValue('measure_chargingInstantaneousPower', 0);
+        }
+    }
+    /**
+     * Update charge mode capability
+     */
+    async updateChargeMode(result) {
+        if (result.status === 'notSupported') {
+            this.log('Charge mode not supported for this vehicle');
+            return;
+        }
+        if (result.status !== 'ok' || !result.data) {
+            return;
+        }
+        const chargeMode = result.data.data.attributes.chargeMode ||
+            result.data.data.attributes.mode;
+        const homeyMode = chargeMode === 'scheduled' || chargeMode === 'schedule_mode'
+            ? 'schedule_mode'
+            : 'always_charging';
+        await this.setCapabilityValue('charge_mode', homeyMode);
+    }
+    /**
+     * Update cockpit data (mileage)
+     */
+    async updateCockpitData(result) {
+        if (result.status === 'notSupported') {
+            this.log('Cockpit not supported for this vehicle');
+            return;
+        }
+        if (result.status !== 'ok' || !result.data) {
+            return;
+        }
+        const totalMileage = result.data.data.attributes.totalMileage || 0;
+        await this.setCapabilityValue('measure_totalMileage', totalMileage);
+    }
+    /**
+     * Update location and calculate if home
+     */
+    async updateLocation(result) {
+        if (result.status === 'notSupported') {
+            this.log('Location not supported for this vehicle');
+            return;
+        }
+        if (result.status !== 'ok' || !result.data) {
+            return;
+        }
+        const { gpsLatitude, gpsLongitude } = result.data.data.attributes;
+        await this.setCapabilityValue('measure_location_latitude', gpsLatitude.toString());
+        await this.setCapabilityValue('measure_location_longitude', gpsLongitude.toString());
+        const locationUrl = `https://www.google.com/maps/search/?api=1&query=${gpsLatitude},${gpsLongitude}`;
+        await this.setCapabilityValue('measure_location', locationUrl);
+        // Calculate if vehicle is home
+        try {
+            const homeCoords = this.homey.geolocation.getLatLng();
+            const distance = this.calculateDistance(homeCoords.latitude, homeCoords.longitude, gpsLatitude, gpsLongitude);
+            const isHome = distance <= 1.0; // Within 1km
+            await this.setCapabilityValue('measure_isHome', isHome);
+        }
+        catch (error) {
+            this.error('Failed to get home coordinates:', error);
+            // Set isHome to false if we can't get home coordinates
+            await this.setCapabilityValue('measure_isHome', false);
+        }
+    }
+    /**
+     * Calculate distance between two coordinates (Haversine formula)
+     */
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth radius in km
+        const dLat = this.toRad(lat2 - lat1);
+        const dLon = this.toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.toRad(lat1)) *
+                Math.cos(this.toRad(lat2)) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+    toRad(degrees) {
+        return (degrees * Math.PI) / 180;
+    }
+    /**
+     * Flow card actions
+     */
+    async startChargingAction() {
+        if (!this.api) {
+            throw new Error('API not initialized');
+        }
+        const result = await this.api.resumeCharging();
+        if (result.status !== 'ok') {
+            throw new Error(result.error || 'Failed to start charging');
+        }
+        this.log('Charging started via flow card');
+    }
+    async stopChargingAction() {
+        if (!this.api) {
+            throw new Error('API not initialized');
+        }
+        const result = await this.api.pauseCharging();
+        if (result.status !== 'ok') {
+            throw new Error(result.error || 'Failed to stop charging');
+        }
+        this.log('Charging stopped via flow card');
+    }
+    /**
+     * Settings change handler
+     */
+    async onSettings({ oldSettings: _oldSettings, newSettings: _newSettings, changedKeys, }) {
+        this.log('Settings changed:', changedKeys);
+        // If credentials changed, reinitialize API client
+        if (changedKeys.includes('username') ||
+            changedKeys.includes('password') ||
+            changedKeys.includes('locale')) {
+            await this.setupApiClient();
+            await this.fetchData();
+        }
+    }
+    /**
+     * Device added handler
+     */
+    async onAdded() {
+        this.log('Device added');
+    }
+    /**
+     * Device renamed handler
+     */
+    async onRenamed(name) {
+        this.log('Device renamed to:', name);
+    }
+    /**
+     * Device deletion handler
+     */
+    async onDeleted() {
+        this.log('Device deleted');
+        // Cleanup intervals
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        if (this.hvacTimeout) {
+            clearTimeout(this.hvacTimeout);
+        }
+    }
 }
+module.exports = DaciaSpringDevice;
+//# sourceMappingURL=device.js.map
