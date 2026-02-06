@@ -4,12 +4,14 @@
     "title": {
       "en": "Charge remaining time",
       "sv": "Återstående laddtid",
+      "no": "Gjenværende ladetid",
       "fr": "Temps de charge restant",
       "it": "Tempo di carica restante"
     },
     "units": {
       "en": "minutes",
       "sv": "minuter",
+      "no": "minutter",
       "fr": "minutes",
       "it": "minuti"
     },

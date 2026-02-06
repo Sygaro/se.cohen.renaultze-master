@@ -2,8 +2,9 @@
   "type": "number",
   "decimals": 0,
   "title": {
-    "en": "Battery temparature",
+    "en": "Battery temperature",
     "sv": "Batteritemperatur",
+    "no": "Batteritemperatur",
     "fr": "Température de la batterie",
     "it": "Temperatura della batteria"
   },

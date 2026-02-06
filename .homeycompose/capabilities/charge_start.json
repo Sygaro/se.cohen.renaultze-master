@@ -3,8 +3,9 @@
     "title": {
       "en": "Charging",
       "sv": "Laddar",
-      "fr": "En charge",  
-      "it": "In carica"  
+      "no": "Lader",
+      "fr": "En charge",
+      "it": "In carica"
     },
     "getable": true,
     "setable": true,

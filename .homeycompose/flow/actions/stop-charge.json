@@ -1,10 +1,14 @@
 {
   "title": {
     "en": "Stop Charge",
+    "sv": "Stoppa laddning",
+    "no": "Stopp lading",
     "it": "Termina ricarica"
   },
   "hint": {
-    "en": "This flow stops/pause battery charging for your vehicle"
+    "en": "This flow stops/pause battery charging for your vehicle",
+    "sv": "Detta flöde stoppar/pausar batteriladdning för ditt fordon",
+    "no": "Denne flyten stopper/pauser batterilading for kjøretøyet ditt"
   },
   "args": [
     {

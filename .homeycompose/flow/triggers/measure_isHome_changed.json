@@ -3,6 +3,7 @@
   "title": {
     "en": "Vehicle is at home changed",
     "sv": "Fordonets hemma status ändrades",
+    "no": "Kjøretøyets hjemme-status endret",
     "fr": "Le paramètre 'à la maison' a changé",
     "it": "Il valore 'è a casa' è cambiato "
   },

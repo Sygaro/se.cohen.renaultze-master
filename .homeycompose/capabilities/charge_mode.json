@@ -6,6 +6,7 @@
       "title": {
         "en": "Always",
         "sv": "Alltid på",
+        "no": "Alltid på",
         "fr": "Instantanée",
         "it": "Sempre"
       }
@@ -15,6 +16,7 @@
       "title": {
         "en": "Scheduled",
         "sv": "Schemalagd",
+        "no": "Planlagt",
         "fr": "Personnalisée",
         "it": "Personalizzato"
       }
@@ -23,6 +25,7 @@
   "title": {
     "en": "Charge mode",
     "sv": "Laddläge",
+    "no": "Lademodus",
     "fr": "Mode de charge",
     "it": "Modalità di carica"
   },

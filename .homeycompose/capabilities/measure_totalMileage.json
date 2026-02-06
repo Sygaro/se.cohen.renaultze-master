@@ -2,8 +2,9 @@
     "type": "number",
     "decimals": 2,
     "title": {
-      "en": "Total milage",
+      "en": "Total mileage",
       "sv": "Total körsträcka",
+      "no": "Totalt kjørelengde",
       "fr": "Kilométrage total",
       "it": "Chilometri totali"
     },

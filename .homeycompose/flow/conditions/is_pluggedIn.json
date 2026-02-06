@@ -2,7 +2,8 @@
   "title": {
     "en": "!{{Plugged in|Not plugged in}} ",
     "sv": "!{{Inkopplad|Ej inlopplad}} ",
-    "fr": "!{{Brachée|Non branchée}} ",
+    "no": "!{{Tilkoblet|Ikke tilkoblet}} ",
+    "fr": "!{{Branchée|Non branchée}} ",
     "it": "!{{Collegato|Non collegato}} "
   },
   "args": [

@@ -2,6 +2,7 @@
   "title": {
     "en": "Charging !{{active|inactive}} ",
     "sv": "Laddning !{{aktiv|inaktiv}} ",
+    "no": "Lading !{{aktiv|inaktiv}} ",
     "fr": "Charge !{{active|inactive}} ",
     "it": "Carica !{{attiva|inattiva}} "
   },

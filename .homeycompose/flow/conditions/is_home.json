@@ -1,6 +1,8 @@
 {
     "title": {
       "en": "!{{At home|Not at home}} ",
+      "sv": "!{{Hemma|Inte hemma}} ",
+      "no": "!{{Hjemme|Ikke hjemme}} ",
       "it": "!{{A casa|Non a casa}} "
     },
     "args": [

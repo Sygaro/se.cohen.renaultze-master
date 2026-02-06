@@ -1,10 +1,14 @@
 {
   "title": {
     "en": "Start Charge",
+    "sv": "Starta laddning",
+    "no": "Start lading",
     "it": "Inizia ricarica"
   },
   "hint": {
-    "en": "This flow starts/resume battery charging for your vehicle"
+    "en": "This flow starts/resume battery charging for your vehicle",
+    "sv": "Detta flöde startar/återupptar batteriladdning för ditt fordon",
+    "no": "Denne flyten starter/gjenopptar batterilading for kjøretøyet ditt"
   },
   "args": [
     {

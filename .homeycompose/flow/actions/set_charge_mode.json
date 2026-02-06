@@ -3,12 +3,14 @@
     "title": {
         "en": "Set charge mode",
         "sv": "Ställ laddläge",
+        "no": "Sett lademodus",
         "fr": "Régler le mode de charge",
         "it": "Modalità di ricarica"
     },
     "titleFormatted": {
         "en": "Set charge mode to [[mode]]",
         "sv": "Ställ laddläge till [[mode]]",
+        "no": "Sett lademodus til [[mode]]",
         "fr": "Régler le mode de charge en [[mode]]",
         "it": "Regolare la modalità di ricarica in [[mode]]"
     },
@@ -27,6 +29,7 @@
                     "title": {
                         "en": "Always",
                         "sv": "Alltid på",
+                        "no": "Alltid på",
                         "fr": "Instantannée",
                         "it": "Sempre"
                     }
@@ -36,6 +39,7 @@
                     "title": {
                         "en": "Scheduled",
                         "sv": "Schemalagd",
+                        "no": "Planlagt",
                         "fr": "Personnalisée",
                         "it": "Personalizzato"
                     }

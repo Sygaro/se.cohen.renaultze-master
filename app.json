@@ -69,6 +69,7 @@
         "title": {
           "en": "Charge mode changed",
           "sv": "Laddläge ändrades",
+          "no": "Lademodus endret",
           "fr": "Changement de mode de charge",
           "it": "Modalità di ricarica variata"
         },
@@ -85,6 +86,7 @@
         "title": {
           "en": "Charging stopped",
           "sv": "Laddning avslutad",
+          "no": "Lading stoppet",
           "fr": "La charge s'est arrêtée",
           "it": "Ricarica si è interrotta"
         },
@@ -101,6 +103,7 @@
         "title": {
           "en": "Charging started",
           "sv": "Laddning startad",
+          "no": "Lading startet",
           "fr": "La charge a commencé",
           "it": "La ricarica è iniziata"
         },
@@ -118,6 +121,7 @@
         "title": {
           "en": "Vehicle is at home changed",
           "sv": "Fordonets hemma status ändrades",
+          "no": "Kjøretøyets hjemme-status endret",
           "fr": "Le paramètre 'à la maison' a changé",
           "it": "Il valore 'è a casa' è cambiato "
         },
@@ -134,6 +138,7 @@
         "title": {
           "en": "Vehicle is not at home",
           "sv": "Bilen är inte hemma",
+          "no": "Kjøretøyet er ikke hjemme",
           "fr": "Véhicule n'est pas à la maison",
           "it": "Il veicolo non è a casa"
         },
@@ -150,6 +155,7 @@
         "title": {
           "en": "Vehicle is at home",
           "sv": "Bilen är hemma",
+          "no": "Kjøretøyet er hjemme",
           "fr": "Véhicule est à la maison",
           "it": "Il veicolo è a casa"
         },
@@ -166,6 +172,7 @@
         "title": {
           "en": "Vehicle location changed",
           "sv": "Fordonets position ändrades",
+          "no": "Kjøretøyets posisjon endret",
           "fr": "L'emplacement du véhicule a changé",
           "it": "La posizione del veicolo è cambiata"
         },
@@ -182,6 +189,7 @@
         "title": {
           "en": "Vehicle is not plugged in",
           "sv": "Bilen är inte inkopplad",
+          "no": "Kjøretøyet er ikke tilkoblet",
           "fr": "Le véhicule n'est pas branché",
           "it": "Il veicolo non è connesso"
         },
@@ -198,6 +206,7 @@
         "title": {
           "en": "Vehicle is plugged in",
           "sv": "Bilen är inkopplad",
+          "no": "Kjøretøyet er tilkoblet",
           "fr": "Le véhicule est branché",
           "it": "Il veicolo è connesso"
         },
@@ -216,6 +225,7 @@
         "title": {
           "en": "Charging !{{active|inactive}} ",
           "sv": "Laddning !{{aktiv|inaktiv}} ",
+          "no": "Lading !{{aktiv|inaktiv}} ",
           "fr": "Charge !{{active|inactive}} ",
           "it": "Carica !{{attiva|inattiva}} "
         },
@@ -231,6 +241,8 @@
       {
         "title": {
           "en": "!{{At home|Not at home}} ",
+          "sv": "!{{Hemma|Inte hemma}} ",
+          "no": "!{{Hjemme|Ikke hjemme}} ",
           "it": "!{{A casa|Non a casa}} "
         },
         "args": [
@@ -246,7 +258,8 @@
         "title": {
           "en": "!{{Plugged in|Not plugged in}} ",
           "sv": "!{{Inkopplad|Ej inlopplad}} ",
-          "fr": "!{{Brachée|Non branchée}} ",
+          "no": "!{{Tilkoblet|Ikke tilkoblet}} ",
+          "fr": "!{{Branchée|Non branchée}} ",
           "it": "!{{Collegato|Non collegato}} "
         },
         "args": [
@@ -265,12 +278,14 @@
         "title": {
           "en": "Set charge mode",
           "sv": "Ställ laddläge",
+          "no": "Sett lademodus",
           "fr": "Régler le mode de charge",
           "it": "Modalità di ricarica"
         },
         "titleFormatted": {
           "en": "Set charge mode to [[mode]]",
           "sv": "Ställ laddläge till [[mode]]",
+          "no": "Sett lademodus til [[mode]]",
           "fr": "Régler le mode de charge en [[mode]]",
           "it": "Regolare la modalità di ricarica in [[mode]]"
         },
@@ -289,6 +304,7 @@
                 "title": {
                   "en": "Always",
                   "sv": "Alltid på",
+                  "no": "Alltid på",
                   "fr": "Instantannée",
                   "it": "Sempre"
                 }
@@ -298,6 +314,7 @@
                 "title": {
                   "en": "Scheduled",
                   "sv": "Schemalagd",
+                  "no": "Planlagt",
                   "fr": "Personnalisée",
                   "it": "Personalizzato"
                 }
@@ -309,10 +326,14 @@
       {
         "title": {
           "en": "Start Charge",
+          "sv": "Starta laddning",
+          "no": "Start lading",
           "it": "Inizia ricarica"
         },
         "hint": {
-          "en": "This flow starts/resume battery charging for your vehicle"
+          "en": "This flow starts/resume battery charging for your vehicle",
+          "sv": "Detta flöde startar/återupptar batteriladdning för ditt fordon",
+          "no": "Denne flyten starter/gjenopptar batterilading for kjøretøyet ditt"
         },
         "args": [
           {
@@ -326,10 +347,14 @@
       {
         "title": {
           "en": "Stop Charge",
+          "sv": "Stoppa laddning",
+          "no": "Stopp lading",
           "it": "Termina ricarica"
         },
         "hint": {
-          "en": "This flow stops/pause battery charging for your vehicle"
+          "en": "This flow stops/pause battery charging for your vehicle",
+          "sv": "Detta flöde stoppar/pausar batteriladdning för ditt fordon",
+          "no": "Denne flyten stopper/pauser batterilading for kjøretøyet ditt"
         },
         "args": [
           {
@@ -382,6 +407,7 @@
             "en": "Turn on heater",
             "it": "Accendi climatizzatore",
             "sv": "Slå på värmaren",
+            "no": "Slå på varmer",
             "fr": "Allumer le chauffage"
           }
         }
@@ -596,6 +622,7 @@
           "title": {
             "en": "Turn on heater",
             "sv": "Slå på värmaren",
+            "no": "Slå på varmer",
             "fr": "Allumer le chauffage"
           }
         }
@@ -797,6 +824,7 @@
           "title": {
             "en": "Always",
             "sv": "Alltid på",
+            "no": "Alltid på",
             "fr": "Instantanée",
             "it": "Sempre"
           }
@@ -806,6 +834,7 @@
           "title": {
             "en": "Scheduled",
             "sv": "Schemalagd",
+            "no": "Planlagt",
             "fr": "Personnalisée",
             "it": "Personalizzato"
           }
@@ -814,6 +843,7 @@
       "title": {
         "en": "Charge mode",
         "sv": "Laddläge",
+        "no": "Lademodus",
         "fr": "Mode de charge",
         "it": "Modalità di carica"
       },
@@ -826,6 +856,7 @@
       "title": {
         "en": "Charging",
         "sv": "Laddar",
+        "no": "Lader",
         "fr": "En charge",
         "it": "In carica"
       },
@@ -840,6 +871,7 @@
       "title": {
         "en": "Range",
         "sv": "Räckvidd",
+        "no": "Rekkevidde",
         "fr": "Autonomie",
         "it": "Autonomia"
       },
@@ -855,6 +887,7 @@
       "title": {
         "en": "Available energy",
         "sv": "Tillgänglig energi",
+        "no": "Tilgjengelig energi",
         "fr": "Énergie disponible",
         "it": "Energia disponibile"
       },
@@ -882,8 +915,9 @@
       "type": "number",
       "decimals": 0,
       "title": {
-        "en": "Battery temparature",
+        "en": "Battery temperature",
         "sv": "Batteritemperatur",
+        "no": "Batteritemperatur",
         "fr": "Température de la batterie",
         "it": "Temperatura della batteria"
       },
@@ -899,6 +933,7 @@
       "title": {
         "en": "Charging rate",
         "sv": "Laddhastighet",
+        "no": "Ladehastighet",
         "fr": "Puissance de charge"
       },
       "units": "kW",
@@ -913,12 +948,14 @@
       "title": {
         "en": "Charge remaining time",
         "sv": "Återstående laddtid",
+        "no": "Gjenværende ladetid",
         "fr": "Temps de charge restant",
         "it": "Tempo di carica restante"
       },
       "units": {
         "en": "minutes",
         "sv": "minuter",
+        "no": "minutter",
         "fr": "minutes",
         "it": "minuti"
       },
@@ -932,6 +969,7 @@
       "title": {
         "en": "Charging",
         "sv": "Laddar",
+        "no": "Lader",
         "fr": "En charge",
         "it": "In carica"
       },
@@ -959,6 +997,7 @@
       "title": {
         "en": "Is vehicle at home",
         "sv": "Är fordonet hemma",
+        "no": "Er kjøretøyet hjemme",
         "fr": "Le véhicule est à la maison",
         "it": "Il veicolo è a casa"
       },
@@ -984,6 +1023,7 @@
       "title": {
         "en": "Location",
         "sv": "Position",
+        "no": "Posisjon",
         "fr": "Localisation",
         "it": "Posizione"
       },
@@ -996,6 +1036,7 @@
       "title": {
         "en": "Latitude",
         "sv": "Latitud",
+        "no": "Breddegrad",
         "fr": "Latitude",
         "it": "Latitudine"
       },
@@ -1008,7 +1049,8 @@
       "title": {
         "en": "Longitude",
         "sv": "Longitud",
-        "fr": "Logitude",
+        "no": "Lengdegrad",
+        "fr": "Longitude",
         "it": "Longitudine"
       },
       "getable": true,
@@ -1020,6 +1062,7 @@
       "title": {
         "en": "Plugged in",
         "sv": "Inkopplad",
+        "no": "Tilkoblet",
         "fr": "Branché",
         "it": "Connesso"
       },
@@ -1032,8 +1075,9 @@
       "type": "number",
       "decimals": 2,
       "title": {
-        "en": "Total milage",
+        "en": "Total mileage",
         "sv": "Total körsträcka",
+        "no": "Totalt kjørelengde",
         "fr": "Kilométrage total",
         "it": "Chilometri totali"
       },

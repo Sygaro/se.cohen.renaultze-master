@@ -3,7 +3,8 @@
     "title": {
       "en": "Longitude",
       "sv": "Longitud",
-      "fr": "Logitude",
+      "no": "Lengdegrad",
+      "fr": "Longitude",
       "it": "Longitudine"
     },
     "getable": true,
