@@ -37,42 +37,45 @@ export default class DaciaSpringDriver extends Driver {
     /**
      * Login handler - authenticate with Renault API
      */
-    session.setHandler('login', async (data: { username: string; password: string; locale?: string }) => {
-      this.log('Attempting login...');
+    session.setHandler(
+      'login',
+      async (data: { username: string; password: string; locale?: string }) => {
+        this.log('Attempting login...');
 
-      if (!data.username || !data.password) {
-        this.error('Missing username or password');
-        return false;
-      }
-
-      try {
-        // Store credentials
-        settings.username = data.username;
-        settings.password = data.password;
-        if (data.locale) {
-          settings.locale = data.locale;
+        if (!data.username || !data.password) {
+          this.error('Missing username or password');
+          return false;
         }
 
-        // Create API client and authenticate
-        apiClient = new RenaultApiClient(
-          {
-            username: settings.username,
-            password: settings.password,
-          },
-          settings.locale
-        );
+        try {
+          // Store credentials
+          settings.username = data.username;
+          settings.password = data.password;
+          if (data.locale) {
+            settings.locale = data.locale;
+          }
 
-        // Get account info (this handles login internally)
-        const accountInfo = await apiClient.getAccountInfo();
-        settings.accountId = accountInfo.accountId;
+          // Create API client and authenticate
+          apiClient = new RenaultApiClient(
+            {
+              username: settings.username,
+              password: settings.password,
+            },
+            settings.locale
+          );
 
-        this.log('Login successful');
-        return true;
-      } catch (error) {
-        this.error('Login failed:', error);
-        return false;
+          // Get account info (this handles login internally)
+          const accountInfo = await apiClient.getAccountInfo();
+          settings.accountId = accountInfo.accountId;
+
+          this.log('Login successful');
+          return true;
+        } catch (error) {
+          this.error('Login failed:', error);
+          return false;
+        }
       }
-    });
+    );
 
     /**
      * List devices handler - fetch vehicles from API

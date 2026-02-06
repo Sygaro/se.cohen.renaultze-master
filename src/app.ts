@@ -11,7 +11,7 @@ class RenaultApp extends App {
    */
   async onInit(): Promise<void> {
     this.log('Renault & Dacia app v3.0 (TypeScript) has been initialized');
-    
+
     // Register flow cards and other app-level functionality here if needed
     this.log('App initialization complete');
   }

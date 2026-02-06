@@ -1,7 +1,7 @@
 /**
  * Modern Renault API Client
  * Based on renault-api Python library with TypeScript enhancements
- * 
+ *
  * Features:
  * - Automatic token management and caching
  * - Retry logic with exponential backoff
@@ -10,8 +10,8 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { 
-  RenaultConfiguration, 
+import {
+  RenaultConfiguration,
   RenaultCredentials,
   ApiResponse,
   BatteryStatusResponse,
@@ -23,8 +23,8 @@ import {
   VehicleInfo,
   ModelCapabilities,
 } from '../types/renault-api.types';
-import { 
-  getConfigurationForLocale, 
+import {
+  getConfigurationForLocale,
   getCapabilitiesForModel,
   API_ENDPOINTS,
   TOKEN_CONFIG,
@@ -35,7 +35,7 @@ export class RenaultApiClient {
   private credentials: RenaultCredentials;
   private capabilities?: ModelCapabilities;
   private axios: AxiosInstance;
-  
+
   // Token caching
   private cachedToken?: string;
   private tokenExpiry?: number;
@@ -49,7 +49,7 @@ export class RenaultApiClient {
         'User-Agent': 'Homey-Renault-App/3.0',
       },
     });
-    
+
     // Setup request/response interceptors for logging
     this.setupInterceptors();
   }
@@ -97,17 +97,17 @@ export class RenaultApiClient {
     }
 
     console.log('Fetching new JWT token');
-    
+
     // Step 1: Login with Gigya
     const loginToken = await this.gigyaLogin();
-    
+
     // Step 2: Get JWT from Gigya
     const jwtToken = await this.gigyaGetJWT(loginToken);
-    
+
     // Cache the token
     this.cachedToken = jwtToken;
-    this.tokenExpiry = Date.now() + (TOKEN_CONFIG.CACHE_BUFFER_SECONDS * 1000);
-    
+    this.tokenExpiry = Date.now() + TOKEN_CONFIG.CACHE_BUFFER_SECONDS * 1000;
+
     return jwtToken;
   }
 
@@ -116,7 +116,7 @@ export class RenaultApiClient {
    */
   private async gigyaLogin(): Promise<string> {
     const url = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_LOGIN}`;
-    
+
     const response = await this.axios.post(url, null, {
       params: {
         ApiKey: this.config.gigyaApiKey,
@@ -137,7 +137,7 @@ export class RenaultApiClient {
    */
   private async gigyaGetJWT(loginToken: string): Promise<string> {
     const url = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_GET_JWT}`;
-    
+
     const response = await this.axios.post(url, null, {
       params: {
         ApiKey: this.config.gigyaApiKey,
@@ -160,11 +160,11 @@ export class RenaultApiClient {
    */
   async getAccountInfo(): Promise<{ accountId: string; country: string }> {
     const idToken = await this.getIdToken();
-    
+
     // Get person ID from Gigya
     const loginToken = await this.gigyaLogin();
     const accountInfoUrl = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_ACCOUNT_INFO}`;
-    
+
     const accountResponse = await this.axios.get(accountInfoUrl, {
       params: {
         ApiKey: this.config.gigyaApiKey,
@@ -177,20 +177,20 @@ export class RenaultApiClient {
     }
 
     const personId = accountResponse.data.data.personId;
-    
+
     // Get person details from Kamereon
     const personUrl = `${this.config.kamereonUrl}${API_ENDPOINTS.KAMEREON_PERSON.replace('{personId}', personId)}`;
-    
+
     const personResponse = await this.axios.get(personUrl, {
       headers: {
         'x-gigya-id_token': idToken,
-        'apikey': this.config.kamereonApiKey,
+        apikey: this.config.kamereonApiKey,
       },
     });
 
     // Find MYRENAULT or MYDACIA account
     const account = personResponse.data.accounts.find(
-      (acc: { accountType: string }) => 
+      (acc: { accountType: string }) =>
         acc.accountType === 'MYRENAULT' || acc.accountType === 'MYDACIA'
     );
 
@@ -200,7 +200,7 @@ export class RenaultApiClient {
 
     // Update credentials
     this.credentials.accountId = account.accountId;
-    
+
     return {
       accountId: account.accountId,
       country: personResponse.data.country,
@@ -216,14 +216,16 @@ export class RenaultApiClient {
     }
 
     const idToken = await this.getIdToken();
-    const url = `${this.config.kamereonUrl}${API_ENDPOINTS.KAMEREON_VEHICLES}`
-      .replace('{accountId}', this.credentials.accountId!)
-      + `?country=${this.config.countryCode}`;
-    
+    const url =
+      `${this.config.kamereonUrl}${API_ENDPOINTS.KAMEREON_VEHICLES}`.replace(
+        '{accountId}',
+        this.credentials.accountId!
+      ) + `?country=${this.config.countryCode}`;
+
     const response = await this.axios.get(url, {
       headers: {
         'x-gigya-id_token': idToken,
-        'apikey': this.config.kamereonApiKey,
+        apikey: this.config.kamereonApiKey,
       },
     });
 
@@ -259,13 +261,15 @@ export class RenaultApiClient {
 
     try {
       const data = await this.kamereonGet<BatteryStatusResponse>('battery-status', 2);
-      
+
       // Convert charging power from Watts to kW for older models
-      if (this.capabilities.reportsChargingPowerInWatts && 
-          data.data.attributes.chargingInstantaneousPower) {
+      if (
+        this.capabilities.reportsChargingPowerInWatts &&
+        data.data.attributes.chargingInstantaneousPower
+      ) {
         data.data.attributes.chargingInstantaneousPower /= 1000;
       }
-      
+
       return { status: 'ok', data };
     } catch (error) {
       return this.handleError(error);
@@ -284,7 +288,7 @@ export class RenaultApiClient {
       // Try newer charging-settings endpoint first
       try {
         const settings = await this.kamereonGet<ChargingSettingsResponse>('charging-settings', 1);
-        
+
         // Transform to charge-mode format
         const chargeMode: ChargeModeResponse = {
           data: {
@@ -295,7 +299,7 @@ export class RenaultApiClient {
             },
           },
         };
-        
+
         console.log('Using charging-settings endpoint');
         return { status: 'ok', data: chargeMode };
       } catch (settingsError) {
@@ -322,10 +326,10 @@ export class RenaultApiClient {
    */
   async setChargeMode(mode: 'always_charging' | 'schedule_mode'): Promise<ApiResponse<void>> {
     if (!this.capabilities?.supportsChargeMode) {
-      return { 
-        status: 'notSupported', 
+      return {
+        status: 'notSupported',
         data: null,
-        error: 'Charge mode not supported for this vehicle model'
+        error: 'Charge mode not supported for this vehicle model',
       };
     }
 
@@ -338,7 +342,7 @@ export class RenaultApiClient {
           },
         },
       };
-      
+
       await this.kamereonPost('actions/charge-mode', body, 1);
       return { status: 'ok', data: null };
     } catch (error) {
@@ -351,10 +355,10 @@ export class RenaultApiClient {
    */
   async getHvacStatus(): Promise<ApiResponse<HvacStatusResponse>> {
     if (!this.capabilities?.supportsHvacStatus) {
-      return { 
-        status: 'notSupported', 
+      return {
+        status: 'notSupported',
         data: null,
-        error: 'HVAC not supported for this vehicle model'
+        error: 'HVAC not supported for this vehicle model',
       };
     }
 
@@ -371,10 +375,10 @@ export class RenaultApiClient {
    */
   async startHvac(targetTemperature: number = 21): Promise<ApiResponse<void>> {
     if (!this.capabilities?.supportsHvacStatus) {
-      return { 
-        status: 'notSupported', 
+      return {
+        status: 'notSupported',
         data: null,
-        error: 'HVAC not supported for this vehicle model'
+        error: 'HVAC not supported for this vehicle model',
       };
     }
 
@@ -388,7 +392,7 @@ export class RenaultApiClient {
           },
         },
       };
-      
+
       await this.kamereonPost('actions/hvac-start', body, 1);
       return { status: 'ok', data: null };
     } catch (error) {
@@ -401,10 +405,10 @@ export class RenaultApiClient {
    */
   async getLocation(): Promise<ApiResponse<LocationResponse>> {
     if (!this.capabilities?.supportsLocation) {
-      return { 
-        status: 'notSupported', 
+      return {
+        status: 'notSupported',
         data: null,
-        error: 'Location not supported for this vehicle model'
+        error: 'Location not supported for this vehicle model',
       };
     }
 
@@ -421,10 +425,10 @@ export class RenaultApiClient {
    */
   async getCockpit(): Promise<ApiResponse<CockpitResponse>> {
     if (!this.capabilities?.supportsCockpit) {
-      return { 
-        status: 'notSupported', 
+      return {
+        status: 'notSupported',
         data: null,
-        error: 'Cockpit data not supported for this vehicle model'
+        error: 'Cockpit data not supported for this vehicle model',
       };
     }
 
@@ -449,7 +453,7 @@ export class RenaultApiClient {
           },
         },
       };
-      
+
       await this.kamereonPostKCM('charge/pause-resume', body, 1);
       return { status: 'ok', data: null };
     } catch (error) {
@@ -470,7 +474,7 @@ export class RenaultApiClient {
           },
         },
       };
-      
+
       await this.kamereonPostKCM('charge/pause-resume', body, 1);
       return { status: 'ok', data: null };
     } catch (error) {
@@ -492,11 +496,11 @@ export class RenaultApiClient {
 
     const idToken = await this.getIdToken();
     const url = `${this.config.kamereonUrl}/commerce/v1/accounts/${this.credentials.accountId}/kamereon/kca/car-adapter/v${version}/cars/${this.credentials.vin}/${path}?country=${this.config.countryCode}`;
-    
+
     const response = await this.axios.get<T>(url, {
       headers: {
         'x-gigya-id_token': idToken,
-        'apikey': this.config.kamereonApiKey,
+        apikey: this.config.kamereonApiKey,
       },
     });
 
@@ -513,12 +517,12 @@ export class RenaultApiClient {
 
     const idToken = await this.getIdToken();
     const url = `${this.config.kamereonUrl}/commerce/v1/accounts/${this.credentials.accountId}/kamereon/kca/car-adapter/v${version}/cars/${this.credentials.vin}/${path}?country=${this.config.countryCode}`;
-    
+
     await this.axios.post(url, body, {
       headers: {
         'Content-Type': 'application/vnd.api+json',
         'x-gigya-id_token': idToken,
-        'apikey': this.config.kamereonApiKey,
+        apikey: this.config.kamereonApiKey,
       },
     });
   }
@@ -533,12 +537,12 @@ export class RenaultApiClient {
 
     const idToken = await this.getIdToken();
     const url = `${this.config.kamereonUrl}/commerce/v1/accounts/${this.credentials.accountId}/kamereon/kcm/v${version}/vehicles/${this.credentials.vin}/${path}?country=${this.config.countryCode}`;
-    
+
     await this.axios.post(url, body, {
       headers: {
         'Content-Type': 'application/vnd.api+json',
         'x-gigya-id_token': idToken,
-        'apikey': this.config.kamereonApiKey,
+        apikey: this.config.kamereonApiKey,
       },
     });
   }
@@ -548,11 +552,11 @@ export class RenaultApiClient {
    */
   private handleError<T>(error: any): ApiResponse<T> {
     console.error('API Error:', error.message);
-    
+
     if (axios.isAxiosError(error) && error.response) {
       const status = error.response.status;
       const errorData = error.response.data;
-      
+
       if (status === 400 && errorData?.type === 'FUNCTIONAL') {
         return {
           status: 'notSupported',
@@ -560,7 +564,7 @@ export class RenaultApiClient {
           error: 'Feature not supported for this vehicle',
         };
       }
-      
+
       if (status === 403) {
         return {
           status: 'notSupported',
@@ -569,7 +573,7 @@ export class RenaultApiClient {
         };
       }
     }
-    
+
     return {
       status: 'error',
       data: null,

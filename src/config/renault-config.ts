@@ -44,7 +44,7 @@ export const RENAULT_CONFIGURATIONS: Record<string, RenaultConfiguration> = {
     kamereonUrl: 'https://api-wired-prod-1-euw1.wrd-aws.com',
     kamereonApiKey: 'YjkKtHmGfaceeuExUDKGxrLZGGvtVS0J',
   },
-  
+
   // Western Europe
   'en-GB': {
     countryCode: 'GB',
@@ -156,25 +156,32 @@ export const API_ENDPOINTS = {
   GIGYA_LOGIN: '/accounts.login',
   GIGYA_ACCOUNT_INFO: '/accounts.getAccountInfo',
   GIGYA_GET_JWT: '/accounts.getJWT',
-  
+
   // Kamereon endpoints
   KAMEREON_PERSON: '/commerce/v1/persons/{personId}',
   KAMEREON_VEHICLES: '/commerce/v1/accounts/{accountId}/vehicles',
-  
+
   // Vehicle data endpoints (KCA - Kamereon Car Adapter)
-  BATTERY_STATUS: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v2/cars/{vin}/battery-status',
+  BATTERY_STATUS:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v2/cars/{vin}/battery-status',
   COCKPIT: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/cockpit',
-  HVAC_STATUS: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/hvac-status',
+  HVAC_STATUS:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/hvac-status',
   LOCATION: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/location',
-  CHARGE_MODE: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/charge-mode',
-  CHARGING_SETTINGS: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/charging-settings',
-  
+  CHARGE_MODE:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/charge-mode',
+  CHARGING_SETTINGS:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/charging-settings',
+
   // Action endpoints
-  ACTION_HVAC_START: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/actions/hvac-start',
-  ACTION_CHARGE_MODE: '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/actions/charge-mode',
-  
+  ACTION_HVAC_START:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/actions/hvac-start',
+  ACTION_CHARGE_MODE:
+    '/commerce/v1/accounts/{accountId}/kamereon/kca/car-adapter/v1/cars/{vin}/actions/charge-mode',
+
   // KCM endpoints (newer)
-  KCM_CHARGE_PAUSE_RESUME: '/commerce/v1/accounts/{accountId}/kamereon/kcm/v1/vehicles/{vin}/charge/pause-resume',
+  KCM_CHARGE_PAUSE_RESUME:
+    '/commerce/v1/accounts/{accountId}/kamereon/kcm/v1/vehicles/{vin}/charge/pause-resume',
   KCM_EV_SETTINGS: '/commerce/v1/accounts/{accountId}/kamereon/kcm/v1/vehicles/{vin}/ev/settings',
 } as const;
 
@@ -201,19 +208,21 @@ export const RETRY_CONFIG = {
  */
 export function getConfigurationForLocale(locale: string): RenaultConfiguration {
   const normalizedLocale = locale.replace('_', '-');
-  
+
   // Handle legacy locale codes
   const localeAliases: Record<string, string> = {
     'no-NO': 'nb-NO', // Legacy Norwegian code → Norwegian Bokmål
   };
-  
+
   const finalLocale = localeAliases[normalizedLocale] || normalizedLocale;
   const config = RENAULT_CONFIGURATIONS[finalLocale];
-  
+
   if (!config) {
-    throw new Error(`No configuration found for locale: ${locale}. Available locales: ${Object.keys(RENAULT_CONFIGURATIONS).join(', ')}`);
+    throw new Error(
+      `No configuration found for locale: ${locale}. Available locales: ${Object.keys(RENAULT_CONFIGURATIONS).join(', ')}`
+    );
   }
-  
+
   return config;
 }
 
@@ -222,7 +231,7 @@ export function getConfigurationForLocale(locale: string): RenaultConfiguration 
  */
 export function getCapabilitiesForModel(modelCode: string): ModelCapabilities {
   const capabilities = MODEL_CAPABILITIES[modelCode as ModelCode];
-  
+
   if (!capabilities) {
     // Return default capabilities for unknown models
     console.warn(`Unknown model code: ${modelCode}. Using default capabilities.`);
@@ -236,6 +245,6 @@ export function getCapabilitiesForModel(modelCode: string): ModelCapabilities {
       reportsChargingPowerInWatts: false,
     };
   }
-  
+
   return capabilities;
 }

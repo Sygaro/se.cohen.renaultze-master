@@ -39,7 +39,7 @@ class RenaultZoeDriver extends Driver {
      */
     session.setHandler('login', async (data: { username: string; password: string }) => {
       this.log('Attempting login...');
-      
+
       if (!data.username || !data.password) {
         this.error('Username or password missing');
         return false;
@@ -84,10 +84,10 @@ class RenaultZoeDriver extends Driver {
 
       try {
         const vehicles = await apiClient.getVehicles();
-        
+
         this.log(`Found ${vehicles.length} vehicle(s)`);
 
-        const devices = vehicles.map(vehicle => ({
+        const devices = vehicles.map((vehicle) => ({
           name: `${vehicle.brand} ${vehicle.model} (${vehicle.vin})`,
           data: {
             id: vehicle.vin,

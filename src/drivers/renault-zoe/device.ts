@@ -5,7 +5,11 @@
 
 import { Device } from 'homey';
 import { RenaultApiClient } from '../../api/renault-api-client';
-import { ApiResponse, BatteryStatusResponse, LocationResponse } from '../../types/renault-api.types';
+import {
+  ApiResponse,
+  BatteryStatusResponse,
+  LocationResponse,
+} from '../../types/renault-api.types';
 
 interface DeviceSettings {
   username: string;
@@ -130,22 +134,20 @@ class RenaultZoeDevice extends Device {
     if (enable) {
       // Check battery level before starting
       const batteryLevel = this.getCapabilityValue('measure_battery') || 0;
-      
+
       if (batteryLevel < 25) {
-        throw new Error(
-          this.homey.__('errors.battery_too_low', { min: 25 })
-        );
+        throw new Error(this.homey.__('errors.battery_too_low', { min: 25 }));
       }
 
       // Start HVAC
       const result = await this.api.startHvac(21);
-      
+
       if (result.status !== 'ok') {
         throw new Error(result.error || 'Failed to start HVAC');
       }
 
       await this.setCapabilityValue('onoff', true);
-      
+
       // Auto-turn off after 10 minutes (safety)
       this.hvacTimeout = setTimeout(() => {
         this.setCapabilityValue('onoff', false);
@@ -155,7 +157,7 @@ class RenaultZoeDevice extends Device {
     } else {
       // Note: Renault API doesn't support stopping HVAC reliably
       await this.setCapabilityValue('onoff', false);
-      
+
       if (this.hvacTimeout) {
         clearTimeout(this.hvacTimeout);
       }
@@ -240,9 +242,7 @@ class RenaultZoeDevice extends Device {
   /**
    * Update battery-related capabilities
    */
-  private async updateBatteryData(
-    result: ApiResponse<BatteryStatusResponse>
-  ): Promise<void> {
+  private async updateBatteryData(result: ApiResponse<BatteryStatusResponse>): Promise<void> {
     if (result.status === 'notSupported') {
       this.log('Battery status not supported for this vehicle');
       return;
@@ -256,13 +256,16 @@ class RenaultZoeDevice extends Device {
     const attrs = result.data.data.attributes;
 
     await this.setCapabilityValue('measure_battery', attrs.batteryLevel || 0);
-    
+
     if (attrs.batteryTemperature !== undefined) {
       await this.setCapabilityValue('measure_batteryTemperature', attrs.batteryTemperature);
     }
 
     await this.setCapabilityValue('measure_batteryAutonomy', attrs.batteryAutonomy || 0);
-    await this.setCapabilityValue('measure_batteryAvailableEnergy', attrs.batteryAvailableEnergy || 0);
+    await this.setCapabilityValue(
+      'measure_batteryAvailableEnergy',
+      attrs.batteryAvailableEnergy || 0
+    );
     await this.setCapabilityValue('measure_batteryCapacity', attrs.batteryCapacity || 0);
 
     // Plug status
@@ -291,9 +294,7 @@ class RenaultZoeDevice extends Device {
   /**
    * Update charge mode capability
    */
-  private async updateChargeMode(
-    result: ApiResponse<any>
-  ): Promise<void> {
+  private async updateChargeMode(result: ApiResponse<any>): Promise<void> {
     if (result.status === 'notSupported') {
       this.log('Charge mode not supported for this vehicle');
       return;
@@ -303,9 +304,7 @@ class RenaultZoeDevice extends Device {
       return;
     }
 
-    const chargeMode = 
-      result.data.data.attributes.chargeMode || 
-      result.data.data.attributes.mode;
+    const chargeMode = result.data.data.attributes.chargeMode || result.data.data.attributes.mode;
 
     const homeyMode =
       chargeMode === 'scheduled' || chargeMode === 'schedule_mode'
@@ -335,9 +334,7 @@ class RenaultZoeDevice extends Device {
   /**
    * Update location and calculate if home
    */
-  private async updateLocation(
-    result: ApiResponse<LocationResponse>
-  ): Promise<void> {
+  private async updateLocation(result: ApiResponse<LocationResponse>): Promise<void> {
     if (result.status === 'notSupported') {
       this.log('Location not supported for this vehicle');
       return;
@@ -358,7 +355,12 @@ class RenaultZoeDevice extends Device {
     // Calculate if vehicle is home
     try {
       const homeCoords = this.homey.geolocation.getLatLng();
-      const distance = this.calculateDistance(homeCoords.latitude, homeCoords.longitude, gpsLatitude, gpsLongitude);
+      const distance = this.calculateDistance(
+        homeCoords.latitude,
+        homeCoords.longitude,
+        gpsLatitude,
+        gpsLongitude
+      );
 
       const isHome = distance <= 1.0; // Within 1km
       await this.setCapabilityValue('measure_isHome', isHome);
@@ -372,12 +374,7 @@ class RenaultZoeDevice extends Device {
   /**
    * Calculate distance between two coordinates (Haversine formula)
    */
-  private calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth radius in km
     const dLat = this.toRad(lat2 - lat1);
     const dLon = this.toRad(lon2 - lon1);

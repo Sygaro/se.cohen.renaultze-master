@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.homeybuild/
+coverage/
+*.js
+*.d.ts
+!jest.config.js

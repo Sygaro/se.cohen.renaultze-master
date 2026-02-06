@@ -22,7 +22,7 @@ describe('RenaultApiClient', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Setup axios mock
     mockedAxios.create = jest.fn().mockReturnValue(mockedAxios as any);
     mockedAxios.interceptors = {
@@ -36,7 +36,8 @@ describe('RenaultApiClient', () => {
   describe('Authentication', () => {
     it('should login successfully', async () => {
       // Mock Gigya login response
-      mockedAxios.post = jest.fn()
+      mockedAxios.post = jest
+        .fn()
         .mockResolvedValueOnce({
           data: {
             statusCode: 200,
@@ -54,14 +55,15 @@ describe('RenaultApiClient', () => {
         });
 
       const token = await (client as any).getIdToken();
-      
+
       expect(token).toBe('test-jwt-token');
       expect(mockedAxios.post).toHaveBeenCalledTimes(2);
     });
 
     it('should cache JWT token', async () => {
       // Mock first authentication
-      mockedAxios.post = jest.fn()
+      mockedAxios.post = jest
+        .fn()
         .mockResolvedValueOnce({
           data: {
             statusCode: 200,
@@ -77,10 +79,10 @@ describe('RenaultApiClient', () => {
 
       // First call - should authenticate
       await (client as any).getIdToken();
-      
+
       // Second call - should use cached token
       const cachedToken = await (client as any).getIdToken();
-      
+
       expect(cachedToken).toBe('test-jwt');
       expect(mockedAxios.post).toHaveBeenCalledTimes(2); // Only initial auth
     });
@@ -107,7 +109,7 @@ describe('RenaultApiClient', () => {
           id_token: 'jwt-token',
         },
       });
-      
+
       // Set vehicle
       client.setVehicle('VF1AG000164767503', 'X102VE');
     });
@@ -133,7 +135,7 @@ describe('RenaultApiClient', () => {
       });
 
       const result = await client.getBatteryStatus();
-      
+
       expect(result.status).toBe('ok');
       expect(result.data?.data.attributes.batteryLevel).toBe(75);
       expect(mockedAxios.get).toHaveBeenCalled();
@@ -142,9 +144,9 @@ describe('RenaultApiClient', () => {
     it('should return notSupported for unsupported features', async () => {
       // Set vehicle with no capabilities
       client.setVehicle('TEST123', 'XJA1VP'); // Kangoo EV - no battery support
-      
+
       const result = await client.getBatteryStatus();
-      
+
       expect(result.status).toBe('notSupported');
       expect(result.data).toBeNull();
     });
@@ -152,7 +154,7 @@ describe('RenaultApiClient', () => {
     it('should get charge mode with fallback on 400/404 errors', async () => {
       // Mock axios.isAxiosError to recognize our error objects
       jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-      
+
       // First call fails with 404 (charging-settings not available)
       // Second call succeeds (charge-mode endpoint)
       const axiosError404 = {
@@ -162,8 +164,9 @@ describe('RenaultApiClient', () => {
           data: { error: 'Not found' },
         },
       };
-      
-      mockedAxios.get = jest.fn()
+
+      mockedAxios.get = jest
+        .fn()
         .mockRejectedValueOnce(axiosError404)
         .mockResolvedValueOnce({
           data: {
@@ -178,7 +181,7 @@ describe('RenaultApiClient', () => {
         });
 
       const result = await client.getChargeMode();
-      
+
       expect(result.status).toBe('ok');
       expect(result.data?.data.attributes.chargeMode).toBeTruthy();
       expect(mockedAxios.get).toHaveBeenCalledTimes(2); // charging-settings + charge-mode
@@ -187,24 +190,23 @@ describe('RenaultApiClient', () => {
     it('should NOT fallback on 502 server errors', async () => {
       // Mock axios.isAxiosError to recognize our error objects
       jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-      
+
       // 502 errors should be returned as errors, not trigger fallback
       const axiosError502 = {
         isAxiosError: true,
         response: {
           status: 502,
-          data: { 
+          data: {
             type: 'TECHNICAL',
-            errors: [{ errorCode: '502000', errorMessage: 'something went wrong' }]
+            errors: [{ errorCode: '502000', errorMessage: 'something went wrong' }],
           },
         },
       };
-      
-      mockedAxios.get = jest.fn()
-        .mockRejectedValueOnce(axiosError502);
+
+      mockedAxios.get = jest.fn().mockRejectedValueOnce(axiosError502);
 
       const result = await client.getChargeMode();
-      
+
       expect(result.status).toBe('error');
       expect(mockedAxios.get).toHaveBeenCalledTimes(1); // Only charging-settings, no fallback
     });
@@ -221,14 +223,14 @@ describe('RenaultApiClient', () => {
         isAxiosError: true,
         message: 'Request failed',
       };
-      
+
       // Spy on axios.isAxiosError to return true for our mock error
       jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-      
+
       mockedAxios.get = jest.fn().mockRejectedValueOnce(axiosError);
 
       const result = await client.getBatteryStatus();
-      
+
       expect(result.status).toBe('notSupported');
       expect(result.error).toContain('not supported');
     });
@@ -243,13 +245,14 @@ describe('RenaultApiClient', () => {
           id_token: 'jwt-token',
         },
       });
-      
+
       client.setVehicle('VF1AG000164767503', 'X102VE');
     });
 
     it('should set charge mode', async () => {
       // Mock getIdToken flow: gigyaLogin -> gigyaGetJWT -> setChargeMode action
-      mockedAxios.post = jest.fn()
+      mockedAxios.post = jest
+        .fn()
         // First call: gigyaLogin
         .mockResolvedValueOnce({
           data: {
@@ -257,7 +260,7 @@ describe('RenaultApiClient', () => {
             sessionInfo: { cookieValue: 'gigya-session-token' },
           },
         })
-        // Second call: gigyaGetJWT  
+        // Second call: gigyaGetJWT
         .mockResolvedValueOnce({
           data: {
             statusCode: 200,
@@ -266,7 +269,7 @@ describe('RenaultApiClient', () => {
         })
         // Third call: setChargeMode action
         .mockResolvedValueOnce({
-          data: { 
+          data: {
             data: {
               type: 'ChargeMode',
               id: 'action-123',
@@ -276,7 +279,7 @@ describe('RenaultApiClient', () => {
         });
 
       const result = await client.setChargeMode('always_charging');
-      
+
       expect(result.status).toBe('ok');
       expect(mockedAxios.post).toHaveBeenCalledTimes(3);
     });
@@ -284,7 +287,7 @@ describe('RenaultApiClient', () => {
     it('should start HVAC', async () => {
       // X102VE (Zoe Phase 2) does not support HVAC (supportsHvacStatus: false)
       const result = await client.startHvac(22);
-      
+
       // Should return notSupported since X102VE doesn't support HVAC
       expect(result.status).toBe('notSupported');
       expect(result.error).toContain('not supported');
@@ -298,7 +301,7 @@ describe('RenaultApiClient', () => {
 
       await client.pauseCharging();
       await client.resumeCharging();
-      
+
       expect(mockedAxios.post).toHaveBeenCalledTimes(2);
     });
   });
@@ -307,7 +310,7 @@ describe('RenaultApiClient', () => {
     it('should load correct configuration for locale', () => {
       const clientSE = new RenaultApiClient(mockCredentials, 'sv-SE');
       expect((clientSE as any).config.countryCode).toBe('SE');
-      
+
       const clientNO = new RenaultApiClient(mockCredentials, 'nb-NO');
       expect((clientNO as any).config.countryCode).toBe('NO');
     });
@@ -321,7 +324,7 @@ describe('RenaultApiClient', () => {
     it('should detect model capabilities', () => {
       client.setVehicle('TEST', 'X101VE'); // Zoe Phase 1
       expect((client as any).capabilities.reportsChargingPowerInWatts).toBe(true);
-      
+
       client.setVehicle('TEST', 'X102VE'); // Zoe Phase 2
       expect((client as any).capabilities.reportsChargingPowerInWatts).toBe(false);
     });

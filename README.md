@@ -1,16 +1,24 @@
 # Renault & Dacia Homey App v3.0
 
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D25.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![Homey SDK](https://img.shields.io/badge/Homey%20SDK-4.0-orange)](https://apps.developer.homey.app/)
+[![License](https://img.shields.io/badge/license-LGPL--3.0-blue.svg)](LICENSE)
+
 Modern, type-safe Homey app for Renault and Dacia electric vehicles built with TypeScript.
 
 ## 🎯 Features
 
 - ✅ **Full TypeScript** support with strict type checking
+- ✅ **Homey SDK 4.x** - Latest platform support
+- ✅ **Node.js 25+** - Modern JavaScript runtime
+- ✅ **TypeScript 7-ready** - Future-proof module configuration
 - ✅ **Comprehensive test coverage** with Jest
 - ✅ **Modern API client** based on renault-api Python library
 - ✅ **Automatic token management** and caching
 - ✅ **Model-specific capabilities** detection
 - ✅ **Fallback mechanisms** for API changes
-- ✅ **ESLint** for code quality
+- ✅ **ESLint + Prettier** for code quality
 
 ## 📦 Supported Vehicles
 
@@ -24,7 +32,7 @@ Modern, type-safe Homey app for Renault and Dacia electric vehicles built with T
 
 ### Prerequisites
 
-- Node.js >= 16.0.0
+- Node.js >= 25.0.0 (we recommend using [nvm](https://github.com/nvm-sh/nvm))
 - Homey CLI: `npm install -g homey`
 
 ### Installation
@@ -63,18 +71,23 @@ src/
 
 ```bash
 npm run build           # Compile TypeScript
-npm run watch          # Auto-rebuild on changes
-npm test               # Run all tests
-npm run test:watch     # Run tests in watch mode
-npm run test:coverage  # Generate coverage report
-npm run lint           # Check code quality
-npm run lint:fix       # Fix linting issues
-npm run validate       # Validate Homey app
+npm run watch           # Auto-rebuild on changes
+npm test                # Run all tests
+npm run test:watch      # Run tests in watch mode
+npm run test:coverage   # Generate coverage report
+npm run lint            # Check code quality
+npm run lint:fix        # Fix linting issues
+npm run format          # Format code with Prettier
+npm run format:check    # Check code formatting
+npm run type-check      # Type check without building
+npm run clean           # Clean build artifacts
+npm run validate        # Validate Homey app
+npm run ci              # Run all checks (CI pipeline)
 ```
 
 ## 🧪 Testing
 
-Tests are written using Jest with 85%+ coverage:
+Tests are written using Jest with 50%+ coverage threshold:
 
 ```bash
 # Run all tests
@@ -86,6 +99,14 @@ npm test -- renault-api-client.test.ts
 # Coverage report
 npm run test:coverage
 ```
+
+## 🛠️ Development Tools
+
+- **TypeScript 5.9** - Type safety with `nodenext` module resolution
+- **ESLint 9** - Code quality and consistency
+- **Prettier 3** - Automatic code formatting
+- **Jest 29** - Comprehensive testing framework
+- **EditorConfig** - Consistent coding styles across editors
 
 ## 🔧 Configuration
 
