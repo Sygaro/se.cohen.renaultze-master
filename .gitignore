@@ -9,9 +9,14 @@
 
 # Build output
 /dist/
+/api/
+/config/
+/types/
+/lib/
 *.js
 *.js.map
 *.d.ts
+*.d.ts.map
 
 # Keep specific JS files
 !jest.config.js
