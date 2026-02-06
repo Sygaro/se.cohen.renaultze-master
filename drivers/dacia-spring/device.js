@@ -46,6 +46,10 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
       this.log('Added charge_start capabillity ');
       this.addCapability('charge_start');
     }
+    if (this.hasCapability('measure_chargingStatus') === false) {
+      this.log('Added measure_chargingStatus capabillity ');
+      this.addCapability('measure_chargingStatus');
+    }
     if (this.hasCapability('measure_isHome') === false) {
       this.log('Added measure_isHome capabillity ');
       this.addCapability('measure_isHome');
@@ -87,10 +91,10 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
   async setLocation(result) {
     this.log('-> setLocation run');
     try {
-      let lat = result.data.attributes.gpsLatitude;
-      let lng = result.data.attributes.gpsLongitude;
-      let direction = result.data.attributes.gpsDirection;
-      let lastUpdate = result.data.attributes.lastUpdateTime;
+      let lat = result.data.data.attributes.gpsLatitude;
+      let lng = result.data.data.attributes.gpsLongitude;
+      let direction = result.data.data.attributes.gpsDirection;
+      let lastUpdate = result.data.data.attributes.lastUpdateTime;
       
       const HomeyLat = this.homey.geolocation.getLatitude();
       const HomeyLng = this.homey.geolocation.getLongitude();
@@ -251,6 +255,7 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
           this.setCapabilityValue('measure_batteryCapacity', 0);
           this.setCapabilityValue('measure_batteryAutonomy', 0);
           this.setCapabilityValue('measure_plugStatus', false);
+          this.setCapabilityValue('charge_start', false);
           this.setCapabilityValue('measure_chargingStatus', false);
           this.setCapabilityValue('measure_chargingRemainingTime', 0);
           this.setCapabilityValue('measure_chargingInstantaneousPower', 0);
@@ -280,10 +285,9 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
             }
           }
           this.setCapabilityValue('charge_start', chargingStatus);
+          this.setCapabilityValue('measure_chargingStatus', chargingStatus);
           this.setCapabilityValue('measure_chargingRemainingTime', chargingRemainingTime);
           this.setCapabilityValue('measure_chargingInstantaneousPower', chargingInstantaneousPower);
-        }
-        // this.setCapabilityValue('measure_chargingInstantaneousPower', chargingInstantaneousPower);
         }
      })
      .catch((error) => {
