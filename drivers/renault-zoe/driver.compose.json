@@ -70,5 +70,107 @@
       "id": "add_devices",
       "template": "add_devices"
     }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "Account Settings",
+        "sv": "Kontoinställningar",
+        "no": "Kontoinnstillinger"
+      },
+      "children": [
+        {
+          "id": "username",
+          "type": "text",
+          "label": {
+            "en": "Email address",
+            "sv": "E-postadress",
+            "no": "E-postadresse"
+          },
+          "value": "",
+          "hint": {
+            "en": "Your Renault account email address",
+            "sv": "Din Renault-kontos e-postadress",
+            "no": "Din Renault-konto e-postadresse"
+          }
+        },
+        {
+          "id": "password",
+          "type": "password",
+          "label": {
+            "en": "Password",
+            "sv": "Lösenord",
+            "no": "Passord"
+          },
+          "value": "",
+          "hint": {
+            "en": "Your Renault account password. Changing this will trigger re-authentication.",
+            "sv": "Ditt Renault-kontolösenord. Ändring av detta utlöser omautentisering.",
+            "no": "Ditt Renault-konto passord. Endring av dette vil utløse re-autentisering."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Account Information (Read-only)",
+        "sv": "Kontoinformation (Skrivskyddad)",
+        "no": "Kontoinformasjon (Skrivebeskyttet)"
+      },
+      "children": [
+        {
+          "id": "accountId",
+          "type": "label",
+          "label": {
+            "en": "Account ID",
+            "sv": "Konto-ID",
+            "no": "Konto-ID"
+          },
+          "value": ""
+        },
+        {
+          "id": "country",
+          "type": "label",
+          "label": {
+            "en": "Country",
+            "sv": "Land",
+            "no": "Land"
+          },
+          "value": ""
+        },
+        {
+          "id": "locale",
+          "type": "label",
+          "label": {
+            "en": "Locale",
+            "sv": "Språk",
+            "no": "Språk"
+          },
+          "value": ""
+        },
+        {
+          "id": "vin",
+          "type": "label",
+          "label": {
+            "en": "VIN",
+            "sv": "VIN",
+            "no": "VIN"
+          },
+          "value": ""
+        },
+        {
+          "id": "modelCode",
+          "type": "label",
+          "label": {
+            "en": "Model Code",
+            "sv": "Modellkod",
+            "no": "Modellkode"
+          },
+          "value": ""
+        }
+      ]
+    }
   ]
 }
