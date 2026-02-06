@@ -275,13 +275,20 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
           .then(result => {
             this.log(result);
             if (result.status == 'ok') {
-              if (result.data.data.attributes["chargeMode"] === 'scheduled') {
+              const chargeMode = result.data.data.attributes["chargeMode"] || result.data.data.attributes["mode"];
+              // Support both old and new format
+              if (chargeMode === 'scheduled' || chargeMode === 'schedule_mode') {
                 this.setCapabilityValue('charge_mode', 'schedule_mode')
               }
               else {
                 this.setCapabilityValue('charge_mode', 'always_charging')
               }
             }
+          })
+          .catch((error) => {
+            this.log('getChargeMode error (feature may not be supported):', error.message);
+          })
+          .finally(() => {
             renaultApi.getCockpit()
               .then(result => {
                 this.log(result);
@@ -315,9 +322,6 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
               .catch((error) => {
                 this.log(error);
               });
-          })
-          .catch((error) => {
-            this.log(error);
           });
       })
       .catch((error) => {
