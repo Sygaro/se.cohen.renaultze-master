@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Last update time",
+    "sv": "Senast uppdaterad",
+    "no": "Sist oppdatert"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "icon": "assets/icons/location.svg"
+}

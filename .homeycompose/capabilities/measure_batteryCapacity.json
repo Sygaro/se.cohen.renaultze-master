@@ -1,0 +1,14 @@
+{
+  "type": "number",
+  "decimals": 0,
+  "title": {
+    "en": "Battery capacity",
+    "sv": "Batterikapacitet",
+    "no": "Batterikapasitet"
+  },
+  "units": "kWh",
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "icon": "assets/icons/batteryAvailableEnergy.svg"
+}

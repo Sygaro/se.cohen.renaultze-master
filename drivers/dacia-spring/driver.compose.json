@@ -17,14 +17,19 @@
     "measure_battery",
     "measure_batteryTemperature",
     "measure_batteryAutonomy",
+    "measure_batteryCapacity",
+    "measure_batteryAvailableEnergy",
     "measure_totalMileage",
     "measure_plugStatus",
     "measure_chargingStatus",
     "measure_chargingRemainingTime",
+    "measure_chargingInstantaneousPower",
     "measure_isHome",
     "measure_location",
     "measure_location_latitude",
-    "measure_location_longitude"
+    "measure_location_longitude",
+    "measure_gpsDirection",
+    "measure_lastUpdateTime"
   ],
   "capabilitiesOptions": {
     "onoff": {

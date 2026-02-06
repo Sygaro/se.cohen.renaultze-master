@@ -62,6 +62,26 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
       this.log('Added measure_location_longitude capabillity ');
       this.addCapability('measure_location_longitude');
     }
+    if (this.hasCapability('measure_batteryCapacity') === false) {
+      this.log('Added measure_batteryCapacity capabillity ');
+      this.addCapability('measure_batteryCapacity');
+    }
+    if (this.hasCapability('measure_batteryAvailableEnergy') === false) {
+      this.log('Added measure_batteryAvailableEnergy capabillity ');
+      this.addCapability('measure_batteryAvailableEnergy');
+    }
+    if (this.hasCapability('measure_chargingInstantaneousPower') === false) {
+      this.log('Added measure_chargingInstantaneousPower capabillity ');
+      this.addCapability('measure_chargingInstantaneousPower');
+    }
+    if (this.hasCapability('measure_gpsDirection') === false) {
+      this.log('Added measure_gpsDirection capabillity ');
+      this.addCapability('measure_gpsDirection');
+    }
+    if (this.hasCapability('measure_lastUpdateTime') === false) {
+      this.log('Added measure_lastUpdateTime capabillity ');
+      this.addCapability('measure_lastUpdateTime');
+    }
   }
 
   async setLocation(result) {
@@ -69,17 +89,27 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
     try {
       let lat = result.data.attributes.gpsLatitude;
       let lng = result.data.attributes.gpsLongitude;
+      let direction = result.data.attributes.gpsDirection;
+      let lastUpdate = result.data.attributes.lastUpdateTime;
+      
       const HomeyLat = this.homey.geolocation.getLatitude();
       const HomeyLng = this.homey.geolocation.getLongitude();
       const settings = this.getSettings();
       let renaultApi = new api.RenaultApi(this.getSettings());
       const setLocation = renaultApi.calculateHome(HomeyLat, HomeyLng, lat, lng);
+      
       await this.setCapabilityValue('measure_isHome', setLocation <= 1);
       await this.setCapabilityValue('measure_location', 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng);
-//      await this.setCapabilityValue('measure_location_latitude', lat.toString());
-//      await this.setCapabilityValue('measure_location_longitude', lng.toString());
       await this.setCapabilityValue('measure_location_latitude', String(lat));
       await this.setCapabilityValue('measure_location_longitude', String(lng));
+      
+      if (direction !== null && direction !== undefined) {
+        await this.setCapabilityValue('measure_gpsDirection', direction);
+      }
+      
+      if (lastUpdate) {
+        await this.setCapabilityValue('measure_lastUpdateTime', lastUpdate);
+      }
     } catch (error) {
       this.homey.app.log(error);
     }
@@ -217,18 +247,21 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
         if (result.status == 'notSupported') {
           this.setCapabilityValue('measure_battery', 0);
           this.setCapabilityValue('measure_batteryTemperature', 0);
-        //this.setCapabilityValue('measure_batteryAvailableEnergy', 0);
+          this.setCapabilityValue('measure_batteryAvailableEnergy', 0);
+          this.setCapabilityValue('measure_batteryCapacity', 0);
           this.setCapabilityValue('measure_batteryAutonomy', 0);
           this.setCapabilityValue('measure_plugStatus', false);
           this.setCapabilityValue('measure_chargingStatus', false);
           this.setCapabilityValue('measure_chargingRemainingTime', 0);
-        //this.setCapabilityValue('measure_chargingInstantaneousPower', 0);
+          this.setCapabilityValue('measure_chargingInstantaneousPower', 0);
         }
         else {
           this.setCapabilityValue('measure_battery', result.data.data.attributes["batteryLevel"] ?? 0);
           this.setCapabilityValue('measure_batteryTemperature', result.data.data.attributes["batteryTemperature"] ?? 20);
           this.setCapabilityValue('measure_batteryAvailableEnergy', result.data.data.attributes["batteryAvailableEnergy"] ?? 0);
+          this.setCapabilityValue('measure_batteryCapacity', result.data.data.attributes["batteryCapacity"] ?? 0);
           this.setCapabilityValue('measure_batteryAutonomy', result.data.data.attributes["batteryAutonomy"] ?? 0);
+          
           let plugStatus = false;
           if (result.data.data.attributes["plugStatus"] === 1) {
             plugStatus = true;
@@ -241,13 +274,15 @@ module.exports = class DaciaSpringDevice extends Homey.Device {
           if (result.data.data.attributes["chargingStatus"] === 1) {
             chargingStatus = true;
             chargingRemainingTime = result.data.data.attributes["chargingRemainingTime"] ?? 0;
-     /*       chargingInstantaneousPower = result.data.data.attributes["chargingInstantaneousPower"] ?? 0;
+            chargingInstantaneousPower = result.data.data.attributes["chargingInstantaneousPower"] ?? 0;
             if (renaultApi.reportsChargingPowerInWatts()) {
               chargingInstantaneousPower = chargingInstantaneousPower / 1000;
-            }   */
+            }
           }
           this.setCapabilityValue('charge_start', chargingStatus);
           this.setCapabilityValue('measure_chargingRemainingTime', chargingRemainingTime);
+          this.setCapabilityValue('measure_chargingInstantaneousPower', chargingInstantaneousPower);
+        }
         // this.setCapabilityValue('measure_chargingInstantaneousPower', chargingInstantaneousPower);
         }
      })

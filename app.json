@@ -362,14 +362,19 @@
         "measure_battery",
         "measure_batteryTemperature",
         "measure_batteryAutonomy",
+        "measure_batteryCapacity",
+        "measure_batteryAvailableEnergy",
         "measure_totalMileage",
         "measure_plugStatus",
         "measure_chargingStatus",
         "measure_chargingRemainingTime",
+        "measure_chargingInstantaneousPower",
         "measure_isHome",
         "measure_location",
         "measure_location_latitude",
-        "measure_location_longitude"
+        "measure_location_longitude",
+        "measure_gpsDirection",
+        "measure_lastUpdateTime"
       ],
       "capabilitiesOptions": {
         "onoff": {
@@ -572,14 +577,19 @@
         "measure_battery",
         "measure_batteryTemperature",
         "measure_batteryAutonomy",
+        "measure_batteryCapacity",
+        "measure_batteryAvailableEnergy",
         "measure_totalMileage",
         "measure_plugStatus",
         "measure_chargingStatus",
         "measure_chargingRemainingTime",
+        "measure_chargingInstantaneousPower",
         "measure_isHome",
         "measure_location",
         "measure_location_latitude",
-        "measure_location_longitude"
+        "measure_location_longitude",
+        "measure_gpsDirection",
+        "measure_lastUpdateTime"
       ],
       "capabilitiesOptions": {
         "onoff": {
@@ -854,6 +864,20 @@
       "uiComponent": null,
       "icon": "assets/icons/batteryAvailableEnergy.svg"
     },
+    "measure_batteryCapacity": {
+      "type": "number",
+      "decimals": 0,
+      "title": {
+        "en": "Battery capacity",
+        "sv": "Batterikapacitet",
+        "no": "Batterikapasitet"
+      },
+      "units": "kWh",
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "assets/icons/batteryAvailableEnergy.svg"
+    },
     "measure_batteryTemperature": {
       "type": "number",
       "decimals": 0,
@@ -916,6 +940,20 @@
       "uiComponent": "sensor",
       "icon": "assets/icons/chargingStatus.svg"
     },
+    "measure_gpsDirection": {
+      "type": "number",
+      "decimals": 0,
+      "title": {
+        "en": "GPS Direction",
+        "sv": "GPS-riktning",
+        "no": "GPS-retning"
+      },
+      "units": "°",
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "assets/icons/location.svg"
+    },
     "measure_isHome": {
       "type": "boolean",
       "title": {
@@ -928,6 +966,18 @@
       "setable": false,
       "uiComponent": "sensor",
       "icon": "assets/icons/isHome.svg"
+    },
+    "measure_lastUpdateTime": {
+      "type": "string",
+      "title": {
+        "en": "Last update time",
+        "sv": "Senast uppdaterad",
+        "no": "Sist oppdatert"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "assets/icons/location.svg"
     },
     "measure_location": {
       "type": "string",

@@ -1,0 +1,14 @@
+{
+  "type": "number",
+  "decimals": 0,
+  "title": {
+    "en": "GPS Direction",
+    "sv": "GPS-riktning",
+    "no": "GPS-retning"
+  },
+  "units": "°",
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "icon": "assets/icons/location.svg"
+}
