@@ -75,6 +75,46 @@
     {
       "type": "group",
       "label": {
+        "en": "Account Credentials",
+        "sv": "Kontoinformation",
+        "no": "Kontoinformasjon"
+      },
+      "children": [
+        {
+          "id": "username",
+          "type": "text",
+          "label": {
+            "en": "Email address",
+            "sv": "E-postadress",
+            "no": "E-postadresse"
+          },
+          "value": "",
+          "hint": {
+            "en": "Your Renault/Dacia account email address",
+            "sv": "Din Renault/Dacia-kontos e-postadress",
+            "no": "Din Renault/Dacia-konto e-postadresse"
+          }
+        },
+        {
+          "id": "password",
+          "type": "password",
+          "label": {
+            "en": "Password",
+            "sv": "Lösenord",
+            "no": "Passord"
+          },
+          "value": "",
+          "hint": {
+            "en": "Your Renault/Dacia account password. Changes are saved automatically.",
+            "sv": "Ditt Renault/Dacia-kontolösenord. Ändringar sparas automatiskt.",
+            "no": "Ditt Renault/Dacia-konto passord. Endringer lagres automatisk."
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
         "en": "Vehicle Information",
         "sv": "Fordonsinformation",
         "no": "Kjøretøyinformasjon"
@@ -138,12 +178,7 @@
             "sv": "Konto-ID",
             "no": "Konto-ID"
           },
-          "value": "",
-          "hint": {
-            "en": "To change account credentials, go to App Settings",
-            "sv": "För att ändra kontoinformation, gå till Appinställningar",
-            "no": "For å endre kontoinformasjon, gå til App-innstillinger"
-          }
+          "value": ""
         },
         {
           "id": "country",

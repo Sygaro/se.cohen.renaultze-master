@@ -61,37 +61,5 @@
     "url": "https://github.com/joco73/se.cohen.renaultze-master/issues"
   },
   "source": "https://github.com/bypo/se.cohen.renaultze-master",
-  "homepage": "https://github.com/joco73/se.cohen.renaultze-master#readme",
-  "settings": [
-    {
-      "id": "username",
-      "type": "text",
-      "title": {
-        "en": "Email address",
-        "sv": "E-postadress",
-        "no": "E-postadresse"
-      },
-      "value": "",
-      "hint": {
-        "en": "Your Renault/Dacia account email address. Used for all vehicles.",
-        "sv": "Din Renault/Dacia-kontos e-postadress. Används för alla fordon.",
-        "no": "Din Renault/Dacia-konto e-postadresse. Brukes for alle kjøretøy."
-      }
-    },
-    {
-      "id": "password",
-      "type": "password",
-      "title": {
-        "en": "Password",
-        "sv": "Lösenord",
-        "no": "Passord"
-      },
-      "value": "",
-      "hint": {
-        "en": "Your Renault/Dacia account password.",
-        "sv": "Ditt Renault/Dacia-kontolösenord.",
-        "no": "Ditt Renault/Dacia-konto passord."
-      }
-    }
-  ]
+  "homepage": "https://github.com/joco73/se.cohen.renaultze-master#readme"
 }

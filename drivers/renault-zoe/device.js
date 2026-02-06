@@ -27,17 +27,14 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
     this.pollingInterval = this.homey.setInterval(() => { this.fetchData(); }, 420000);
   }
 
-  // Helper method to get combined settings (app + device)
-  getCombinedSettings() {
-    const deviceSettings = this.getSettings();
-    const appUsername = this.homey.settings.get('username');
-    const appPassword = this.homey.settings.get('password');
+  async onSettings({ oldSettings, newSettings, changedKeys }) {
+    this.log('Settings were changed', changedKeys);
     
-    return {
-      username: appUsername || deviceSettings.username,
-      password: appPassword || deviceSettings.password,
-      ...deviceSettings
-    };
+    // If username or password changed, clear cached tokens to force re-authentication
+    if (changedKeys.includes('username') || changedKeys.includes('password')) {
+      this.log('Credentials changed, will re-authenticate on next API call');
+      // Token will be refreshed automatically on next API call due to the caching mechanism in api.js
+    }
   }
 
   SetCapabilities() {
@@ -71,7 +68,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
       const HomeyLat = this.homey.geolocation.getLatitude();
       const HomeyLng = this.homey.geolocation.getLongitude();
       const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+      let renaultApi = new api.RenaultApi(this.getSettings());
       const setLocation = renaultApi.calculateHome(HomeyLat, HomeyLng, lat, lng);
       await this.setCapabilityValue('measure_isHome', setLocation <= 1);
       await this.setCapabilityValue('measure_location', 'https://www.google.com/maps/search/?api=1&query=' + lat + ',' + lng);
@@ -87,7 +84,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async chargeModeActionRunListener(args, state) {
     this.log('-> chargeModeActionRunListener run');
     const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+    let renaultApi = new api.RenaultApi(this.getSettings());
     renaultApi.setChargeMode(args.mode)
       .then(result => {
         this.log(result);
@@ -99,7 +96,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
     this.log('-> onCapabilityChargeButton is clicked');
       this.log('Start Charging');
         const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+        let renaultApi = new api.RenaultApi(this.getSettings());
         renaultApi.chargingStart()
           .then(result => {
             this.log(result);
@@ -116,7 +113,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async chargeStopActionRunListener(opts) {
       this.log('Stop Charging');
       const settings = this.getSettings();
-      let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+      let renaultApi = new api.RenaultApi(this.getSettings());
       renaultApi.chargingStop()
         .then(result => {
           this.log(result);
@@ -134,7 +131,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
   async onCapabilityPicker(opts) {
     this.log('-> onCapabilityPicker is changeed');
     const settings = this.getSettings();
-    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+    let renaultApi = new api.RenaultApi(this.getSettings());
     renaultApi.setChargeMode(opts)
       .then(result => {
         this.log(result);
@@ -149,7 +146,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
       let batterylevel = this.getCapabilityValue('measure_battery');
       if (batterylevel > 24) { // Zoe internal app can not run heater below 40 - we will be a bit nicer
         const settings = this.getSettings();
-        let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+        let renaultApi = new api.RenaultApi(this.getSettings());
         renaultApi.startAC(21)
           .then(result => {
             this.log(result);
@@ -201,7 +198,7 @@ module.exports = class RenaultZoeDevice extends Homey.Device {
 
   async fetchData() {
     this.log('-> enter fetchCarData');
-    let renaultApi = new api.RenaultApi(this.getCombinedSettings());
+    let renaultApi = new api.RenaultApi(this.getSettings());
     renaultApi.getBatteryStatus()
       .then(result => {
         this.log(result);
