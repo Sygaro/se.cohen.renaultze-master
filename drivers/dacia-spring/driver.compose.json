@@ -1,7 +1,8 @@
 {
   "id": "dacia-spring",
   "name": {
-    "en": "Dacia Spring"
+    "en": "Dacia Spring",
+    "no": "Dacia Spring"
   },
   "class": "other",
   "platforms": [
@@ -57,12 +58,29 @@
       "options": {
         "title": {
           "en": "Login to Dacia IDConnect",
+          "no": "Logg inn på Dacia IDConnect",
           "it": "Collegamento a Renault IDConnect"
         },
-        "usernameLabel": { "en": "E-mail address", "it": "Indirizzo E-mail" },
-        "usernamePlaceholder": { "en": "john@doe.com", "it": "marco@rossi.it" },
-        "passwordLabel": { "en": "Password", "it": "Password" },
-        "passwordPlaceholder": { "en": "Password", "en": "Password" }
+        "usernameLabel": {
+          "en": "E-mail address",
+          "no": "E-postadresse",
+          "it": "Indirizzo E-mail"
+        },
+        "usernamePlaceholder": {
+          "en": "john@doe.com",
+          "no": "ola@nordmann.no",
+          "it": "marco@rossi.it"
+        },
+        "passwordLabel": {
+          "en": "Password",
+          "no": "Passord",
+          "it": "Password"
+        },
+        "passwordPlaceholder": {
+          "en": "Password",
+          "no": "Passord",
+          "it": "Password"
+        }
       }
     },
     {

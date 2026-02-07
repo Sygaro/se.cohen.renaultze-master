@@ -1,5 +1,57 @@
+# Environment & Config
 /env.json
 /.env.json
+.env
+.env.local
+
+# Dependencies
 /node_modules/
+
+# Build output
+/dist/
+/api/
+/config/
+/types/
+/lib/
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Keep specific JS files
+!jest.config.js
+!eslint.config.js
+
+# Test
 /test.js
+coverage/
+.nyc_output/
+
+# Homey
 /.homeybuild/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# GitHub Actions
+.github/workflows/*.local.yml
