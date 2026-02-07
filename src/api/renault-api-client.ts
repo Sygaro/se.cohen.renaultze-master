@@ -324,14 +324,28 @@ export class RenaultApiClient {
       },
     });
 
-    // Find MYRENAULT or MYDACIA account
-    const account = personResponse.data.accounts.find(
-      (acc: { accountType: string }) =>
-        acc.accountType === 'MYRENAULT' || acc.accountType === 'MYDACIA'
+    const accounts = personResponse.data.accounts || [];
+    const accountTypes = accounts.map((acc: { accountType: string }) => acc.accountType).join(', ');
+    console.log(`Available account types: ${accountTypes || 'none'}`);
+
+    // Prefer MYRENAULT/MYDACIA (including regional variants like MYRENAULT-RETAIL)
+    let account = accounts.find((acc: { accountType: string }) =>
+      acc.accountType === 'MYRENAULT' || acc.accountType === 'MYDACIA'
     );
 
     if (!account) {
-      throw new Error('No MYRENAULT or MYDACIA account found');
+      account = accounts.find((acc: { accountType: string }) =>
+        acc.accountType?.startsWith('MYRENAULT') || acc.accountType?.startsWith('MYDACIA')
+      );
+    }
+
+    if (!account) {
+      // Fallback: pick the first ACTIVE account if present, otherwise the first account
+      account = accounts.find((acc: { accountStatus?: string }) => acc.accountStatus === 'ACTIVE') || accounts[0];
+    }
+
+    if (!account) {
+      throw new Error('No account found in person details');
     }
 
     // Update credentials
