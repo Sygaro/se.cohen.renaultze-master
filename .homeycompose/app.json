@@ -9,6 +9,7 @@
   ],
   "name": {
     "en": "Renault and Dacia",
+    "no": "Renault og Dacia",
     "it": "Renault e Dacia"
   },
   "description": {
@@ -19,6 +20,9 @@
   "tags": {
     "en": [
       "renault, zoe, dacia, spring, battery, heating"
+    ],
+    "no": [
+      "renault, zoe, dacia, spring, batteri, oppvarming"
     ]
   },
   "category": [

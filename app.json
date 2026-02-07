@@ -10,6 +10,7 @@
   ],
   "name": {
     "en": "Renault and Dacia",
+    "no": "Renault og Dacia",
     "it": "Renault e Dacia"
   },
   "description": {
@@ -20,6 +21,9 @@
   "tags": {
     "en": [
       "renault, zoe, dacia, spring, battery, heating"
+    ],
+    "no": [
+      "renault, zoe, dacia, spring, batteri, oppvarming"
     ]
   },
   "category": [
@@ -372,7 +376,8 @@
     {
       "id": "dacia-spring",
       "name": {
-        "en": "Dacia Spring"
+        "en": "Dacia Spring",
+        "no": "Dacia Spring"
       },
       "class": "other",
       "platforms": [
@@ -425,22 +430,28 @@
           "options": {
             "title": {
               "en": "Login to Dacia IDConnect",
+              "no": "Logg inn på Dacia IDConnect",
               "it": "Collegamento a Renault IDConnect"
             },
             "usernameLabel": {
               "en": "E-mail address",
+              "no": "E-postadresse",
               "it": "Indirizzo E-mail"
             },
             "usernamePlaceholder": {
               "en": "john@doe.com",
+              "no": "ola@nordmann.no",
               "it": "marco@rossi.it"
             },
             "passwordLabel": {
               "en": "Password",
+              "no": "Passord",
               "it": "Password"
             },
             "passwordPlaceholder": {
-              "en": "Password"
+              "en": "Password",
+              "no": "Passord",
+              "it": "Password"
             }
           }
         },
@@ -595,7 +606,8 @@
     {
       "id": "renault-zoe",
       "name": {
-        "en": "Renault Zoe"
+        "en": "Renault Zoe",
+        "no": "Renault Zoe"
       },
       "class": "other",
       "capabilities": [
@@ -648,22 +660,28 @@
           "options": {
             "title": {
               "en": "Login to Renault IDConnect",
+              "no": "Logg inn på Renault IDConnect",
               "it": "Collegamento a Renault IDConnect"
             },
             "usernameLabel": {
               "en": "E-mail address",
+              "no": "E-postadresse",
               "it": "Indirizzo E-mail"
             },
             "usernamePlaceholder": {
               "en": "john@doe.com",
+              "no": "ola@nordmann.no",
               "it": "marco@rossi.it"
             },
             "passwordLabel": {
               "en": "Password",
+              "no": "Passord",
               "it": "Password"
             },
             "passwordPlaceholder": {
-              "en": "Password"
+              "en": "Password",
+              "no": "Passord",
+              "it": "Password"
             }
           }
         },
