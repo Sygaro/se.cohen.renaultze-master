@@ -107,7 +107,7 @@ class DaciaSpringDriver extends Driver {
             password: settings.password,
             accountId: settings.accountId,
             vin: vehicle.vin,
-            modelCode: vehicle.model,
+            modelCode: vehicle.modelCode,
             locale: settings.locale,
           },
         }));
