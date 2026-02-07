@@ -194,7 +194,8 @@ class RenaultZoeDevice extends Device {
       return;
     }
 
-    this.log('Fetching vehicle data...');
+    const timestamp = new Date().toISOString();
+    this.log(`[${timestamp}] Fetching vehicle data...`);
 
     try {
       // Fetch data in parallel for better performance

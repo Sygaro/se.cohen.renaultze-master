@@ -111,4 +111,4 @@ class RenaultZoeDriver extends Driver {
   }
 }
 
-module.exports = RenaultZoeDriver;
+export = RenaultZoeDriver;

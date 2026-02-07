@@ -24,4 +24,4 @@ class RenaultApp extends App {
   }
 }
 
-module.exports = RenaultApp;
+export = RenaultApp;

@@ -21,6 +21,7 @@ import {
   LocationResponse,
   CockpitResponse,
   VehicleInfo,
+  VehicleLink,
   ModelCapabilities,
 } from '../types/renault-api.types';
 import {
@@ -92,11 +93,16 @@ export class RenaultApiClient {
   private async getIdToken(): Promise<string> {
     // Check if cached token is still valid
     if (this.cachedToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
-      console.log('Using cached JWT token');
+      const remainingSeconds = Math.floor((this.tokenExpiry - Date.now()) / 1000);
+      console.log(`Using cached JWT token (expires in ${remainingSeconds}s)`);
       return this.cachedToken;
     }
 
-    console.log('Fetching new JWT token');
+    if (this.cachedToken) {
+      console.log('Cached token expired, fetching new JWT token');
+    } else {
+      console.log('No cached token, fetching new JWT token');
+    }
 
     // Step 1: Login with Gigya
     const loginToken = await this.gigyaLogin();
@@ -104,9 +110,12 @@ export class RenaultApiClient {
     // Step 2: Get JWT from Gigya
     const jwtToken = await this.gigyaGetJWT(loginToken);
 
-    // Cache the token
+    // Cache the token with proper expiration
+    // JWT expires in JWT_EXPIRATION_SECONDS, but we cache for slightly less to be safe
     this.cachedToken = jwtToken;
-    this.tokenExpiry = Date.now() + TOKEN_CONFIG.CACHE_BUFFER_SECONDS * 1000;
+    this.tokenExpiry = Date.now() + (TOKEN_CONFIG.JWT_EXPIRATION_SECONDS - TOKEN_CONFIG.CACHE_BUFFER_SECONDS) * 1000;
+
+    console.log(`Token cached until: ${new Date(this.tokenExpiry).toISOString()}`);
 
     return jwtToken;
   }
@@ -117,6 +126,8 @@ export class RenaultApiClient {
   private async gigyaLogin(): Promise<string> {
     const url = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_LOGIN}`;
 
+    console.log(`Authenticating user: ${this.credentials.username}`);
+
     const response = await this.axios.post(url, null, {
       params: {
         ApiKey: this.config.gigyaApiKey,
@@ -126,9 +137,11 @@ export class RenaultApiClient {
     });
 
     if (response.data.statusCode !== 200) {
+      console.error(`Gigya login failed. Status: ${response.data.statusCode}, Reason: ${response.data.statusReason}`);
       throw new Error(`Gigya login failed: ${response.data.statusReason || 'Unknown error'}`);
     }
 
+    console.log('Gigya login successful');
     return response.data.sessionInfo.cookieValue;
   }
 
@@ -229,7 +242,7 @@ export class RenaultApiClient {
       },
     });
 
-    return response.data.vehicleLinks.map((link: any) => ({
+    return response.data.vehicleLinks.map((link: VehicleLink) => ({
       vin: link.vin,
       modelCode: link.vehicleDetails.model.code,
       brand: link.vehicleDetails.brand.label,
@@ -510,7 +523,7 @@ export class RenaultApiClient {
   /**
    * Generic POST request to Kamereon API
    */
-  private async kamereonPost(path: string, body: any, version: number): Promise<void> {
+  private async kamereonPost(path: string, body: Record<string, unknown>, version: number): Promise<void> {
     if (!this.credentials.accountId || !this.credentials.vin) {
       throw new Error('Account ID and VIN must be set before making API calls');
     }
@@ -530,7 +543,7 @@ export class RenaultApiClient {
   /**
    * Generic POST request to Kamereon KCM API
    */
-  private async kamereonPostKCM(path: string, body: any, version: number): Promise<void> {
+  private async kamereonPostKCM(path: string, body: Record<string, unknown>, version: number): Promise<void> {
     if (!this.credentials.accountId || !this.credentials.vin) {
       throw new Error('Account ID and VIN must be set before making API calls');
     }
@@ -550,8 +563,8 @@ export class RenaultApiClient {
   /**
    * Handle API errors
    */
-  private handleError<T>(error: any): ApiResponse<T> {
-    console.error('API Error:', error.message);
+  private handleError<T>(error: unknown): ApiResponse<T> {
+    console.error('API Error:', error instanceof Error ? error.message : String(error));
 
     if (axios.isAxiosError(error) && error.response) {
       const status = error.response.status;
@@ -577,7 +590,7 @@ export class RenaultApiClient {
     return {
       status: 'error',
       data: null,
-      error: error.message || 'Unknown error occurred',
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     };
   }
 }

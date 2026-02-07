@@ -15,7 +15,7 @@ interface PairingSettings {
   modelCode?: string;
 }
 
-export default class DaciaSpringDriver extends Driver {
+class DaciaSpringDriver extends Driver {
   /**
    * onInit is called when the driver is initialized.
    */
@@ -116,4 +116,4 @@ export default class DaciaSpringDriver extends Driver {
   }
 }
 
-module.exports = DaciaSpringDriver;
+export = DaciaSpringDriver;
