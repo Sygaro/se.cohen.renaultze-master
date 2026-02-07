@@ -17,6 +17,10 @@ export default [
         console: 'readonly',
         process: 'readonly',
         NodeJS: 'readonly',
+        setInterval: 'readonly',
+        setTimeout: 'readonly',
+        clearInterval: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     plugins: {

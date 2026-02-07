@@ -9,6 +9,8 @@ import {
   ApiResponse,
   BatteryStatusResponse,
   LocationResponse,
+  ChargeModeResponse,
+  CockpitResponse,
 } from '../../types/renault-api.types';
 
 interface DeviceSettings {
@@ -295,7 +297,7 @@ class DaciaSpringDevice extends Device {
   /**
    * Update charge mode capability
    */
-  private async updateChargeMode(result: ApiResponse<any>): Promise<void> {
+  private async updateChargeMode(result: ApiResponse<ChargeModeResponse>): Promise<void> {
     if (result.status === 'notSupported') {
       this.log('Charge mode not supported for this vehicle');
       return;
@@ -305,7 +307,7 @@ class DaciaSpringDevice extends Device {
       return;
     }
 
-    const chargeMode = result.data.data.attributes.chargeMode || result.data.data.attributes.mode;
+    const chargeMode = result.data.data.attributes.chargeMode;
 
     const homeyMode =
       chargeMode === 'scheduled' || chargeMode === 'schedule_mode'
@@ -318,7 +320,7 @@ class DaciaSpringDevice extends Device {
   /**
    * Update cockpit data (mileage)
    */
-  private async updateCockpitData(result: ApiResponse<any>): Promise<void> {
+  private async updateCockpitData(result: ApiResponse<CockpitResponse>): Promise<void> {
     if (result.status === 'notSupported') {
       this.log('Cockpit not supported for this vehicle');
       return;
