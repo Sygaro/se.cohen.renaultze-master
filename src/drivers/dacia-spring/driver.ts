@@ -43,13 +43,16 @@ class DaciaSpringDriver extends Driver {
      * Combined login with locale selection
      */
     session.setHandler('login_with_locale', async (data: { locale: string; username: string; password: string }) => {
-      this.log('Attempting login with locale...');
+      this.log('================================================');
+      this.log('LOGIN_WITH_LOCALE HANDLER CALLED');
       this.log(`Locale: ${data.locale}`);
       this.log(`Username: ${data.username}`);
+      this.log(`Password length: ${data.password?.length || 0}`);
+      this.log('================================================');
 
       if (!data.locale || !data.username || !data.password) {
         const error = 'Missing required fields';
-        this.error(error);
+        this.error('❌ Validation failed:', error);
         throw new Error(error);
       }
 
@@ -58,9 +61,10 @@ class DaciaSpringDriver extends Driver {
         settings.locale = data.locale;
         settings.username = data.username;
         settings.password = data.password;
+        this.log('✅ Settings saved');
 
         // Create API client with selected locale
-        this.log(`Creating API client with locale: ${settings.locale}`);
+        this.log(`Step 1: Creating API client with locale: ${settings.locale}`);
         apiClient = new RenaultApiClient(
           {
             username: data.username,
@@ -68,16 +72,48 @@ class DaciaSpringDriver extends Driver {
           },
           data.locale
         );
+        this.log('✅ API client created');
+        this.log('Config:', JSON.stringify(apiClient.getDebugInfo(), null, 2));
 
         // Get account info (this handles login internally)
+        this.log('Step 2: Calling getAccountInfo()...');
         const accountInfo = await apiClient.getAccountInfo();
+        this.log('✅ Account info retrieved:', JSON.stringify(accountInfo, null, 2));
+
         settings.accountId = accountInfo.accountId;
 
-        this.log('Login successful');
+        // Final validation
+        if (!settings.accountId) {
+          throw new Error('Account ID not set after getAccountInfo()');
+        }
+
+        this.log('================================================');
+        this.log('✅ LOGIN SUCCESSFUL');
+        this.log(`Account ID: ${settings.accountId}`);
+        this.log('================================================');
         return true;
-      } catch (error) {
-        this.error('Login failed:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        this.error('================================================');
+        this.error('❌ LOGIN FAILED');
+        
+        if (error instanceof Error) {
+          this.error(`Error name: ${error.name}`);
+          this.error(`Error message: ${error.message}`);
+          if (error.stack) {
+            this.error(`Stack trace: ${error.stack}`);
+          }
+        } else {
+          this.error(`Unknown error: ${String(error)}`);
+        }
+        
+        if (apiClient) {
+          this.error('API Client Debug Info:', JSON.stringify(apiClient.getDebugInfo(), null, 2));
+        }
+        
+        this.error('================================================');
+        
+        // Re-throw with clear error message
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error during login';
         throw new Error(errorMessage);
       }
     });
