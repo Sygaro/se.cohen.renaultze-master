@@ -1,0 +1,7 @@
+# Ignore customized environment files with real credentials
+*.local.json
+*_private.postman_environment.json
+*_personal.postman_environment.json
+
+# Ignore exported collections with sensitive data
+*_export_*.json

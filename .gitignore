@@ -52,6 +52,9 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+.DS_Store
+.homeycompose/app.json
 
 # GitHub Actions
 .github/workflows/*.local.yml
+

@@ -6,6 +6,11 @@ import { Driver } from 'homey';
 import { RenaultApiClient } from '../../api/renault-api-client';
 import type { VehicleInfo } from '../../types/renault-api.types';
 
+interface PairingSession {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setHandler(event: string, handler: (...args: any[]) => Promise<any>): void;
+}
+
 interface PairingSettings {
   username: string;
   password: string;
@@ -26,7 +31,7 @@ class DaciaSpringDriver extends Driver {
   /**
    * onPair is called when a user starts pairing
    */
-  async onPair(session: any): Promise<void> {
+  async onPair(session: PairingSession): Promise<void> {
     let apiClient: RenaultApiClient | undefined;
     const settings: PairingSettings = {
       username: '',

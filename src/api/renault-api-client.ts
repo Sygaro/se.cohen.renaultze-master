@@ -40,8 +40,11 @@ export class RenaultApiClient {
   // Token caching
   private cachedToken?: string;
   private tokenExpiry?: number;
+  private cachedLoginToken?: string;
+  private loginTokenExpiry?: number;
+  private loginAttempts: number = 0; // Track number of login attempts
 
-  constructor(credentials: RenaultCredentials, locale: string = 'sv-SE') {
+  constructor(credentials: RenaultCredentials, locale: string = 'nb-NO') {
     this.config = getConfigurationForLocale(locale);
     this.credentials = credentials;
     this.axios = axios.create({
@@ -53,6 +56,36 @@ export class RenaultApiClient {
 
     // Setup request/response interceptors for logging
     this.setupInterceptors();
+    
+    // Log configuration on initialization
+    console.log('🔧 RenaultApiClient initialized');
+    console.log(`   Locale: ${locale} (${this.config.countryCode})`);
+    console.log(`   Gigya URL: ${this.config.gigyaUrl}`);
+    console.log(`   Gigya API Key: ${this.config.gigyaApiKey.substring(0, 15)}...`);
+    console.log(`   Kamereon URL: ${this.config.kamereonUrl}`);
+    console.log(`   Username: ${credentials.username}`);
+  }
+
+  /**
+   * Get debug information about the current configuration
+   * Useful for troubleshooting authentication issues
+   */
+  getDebugInfo(): object {
+    return {
+      locale: this.config.locale,
+      countryCode: this.config.countryCode,
+      gigyaUrl: this.config.gigyaUrl,
+      gigyaApiKey: this.config.gigyaApiKey.substring(0, 15) + '...',
+      kamereonUrl: this.config.kamereonUrl,
+      username: this.credentials.username,
+      hasAccountId: !!this.credentials.accountId,
+      hasVin: !!this.credentials.vin,
+      hasCachedToken: !!this.cachedToken,
+      hasCachedLoginToken: !!this.cachedLoginToken,
+      loginAttempts: this.loginAttempts,
+      tokenExpiryIn: this.tokenExpiry ? Math.floor((this.tokenExpiry - Date.now()) / 1000) : null,
+      loginTokenExpiryIn: this.loginTokenExpiry ? Math.floor((this.loginTokenExpiry - Date.now()) / 1000) : null,
+    };
   }
 
   /**
@@ -62,7 +95,19 @@ export class RenaultApiClient {
     // Request interceptor for logging
     this.axios.interceptors.request.use(
       (config) => {
-        console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+        const url = config.url || '';
+        const method = config.method?.toUpperCase() || 'GET';
+        
+        // Mask sensitive data in logs
+        let loggedParams = '';
+        if (config.params) {
+          const safeParams = { ...config.params };
+          if (safeParams.password) safeParams.password = '***';
+          if (safeParams.login_token) safeParams.login_token = safeParams.login_token.substring(0, 10) + '...';
+          loggedParams = `\n  Params: ${JSON.stringify(safeParams)}`;
+        }
+        
+        console.log(`\ud83c\udf10 API Request: ${method} ${url}${loggedParams}`);
         return config;
       },
       (error) => Promise.reject(error)
@@ -70,12 +115,17 @@ export class RenaultApiClient {
 
     // Response interceptor for error handling
     this.axios.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        const status = response.status;
+        const url = response.config.url || '';
+        console.log(`\u2705 API Response: ${status} ${url}`);
+        return response;
+      },
       async (error: AxiosError) => {
         if (error.response) {
-          console.error(`API Error ${error.response.status}:`, error.response.data);
+          console.error(`\u274c API Error ${error.response.status}:`, error.response.data);
         } else {
-          console.error('API Error:', error.message);
+          console.error('\u274c API Error:', error.message);
         }
         return Promise.reject(error);
       }
@@ -104,8 +154,8 @@ export class RenaultApiClient {
       console.log('No cached token, fetching new JWT token');
     }
 
-    // Step 1: Login with Gigya
-    const loginToken = await this.gigyaLogin();
+    // Step 1: Login with Gigya (uses cached login token)
+    const loginToken = await this.getLoginToken();
 
     // Step 2: Get JWT from Gigya
     const jwtToken = await this.gigyaGetJWT(loginToken);
@@ -121,28 +171,90 @@ export class RenaultApiClient {
   }
 
   /**
+   * Get cached login token or authenticate if needed
+   * Login tokens are valid for a session (roughly 1 hour)
+   */
+  private async getLoginToken(): Promise<string> {
+    // Check if cached login token is still valid (cache for 50 minutes)
+    if (this.cachedLoginToken && this.loginTokenExpiry && Date.now() < this.loginTokenExpiry) {
+      const remainingSeconds = Math.floor((this.loginTokenExpiry - Date.now()) / 1000);
+      console.log(`Using cached login token (expires in ${remainingSeconds}s)`);
+      return this.cachedLoginToken;
+    }
+
+    if (this.cachedLoginToken) {
+      console.log('Cached login token expired, fetching new login token');
+    } else {
+      console.log('No cached login token, authenticating with Gigya');
+    }
+
+    // Authenticate and cache
+    this.loginAttempts++;
+    console.log(`🔐 Login attempt #${this.loginAttempts}`);
+    const loginToken = await this.gigyaLogin();
+    
+    // Cache login token for 50 minutes (session typically lasts 1 hour)
+    this.cachedLoginToken = loginToken;
+    this.loginTokenExpiry = Date.now() + (50 * 60 * 1000); // 50 minutes
+    
+    console.log(`Login token cached until: ${new Date(this.loginTokenExpiry).toISOString()}`);
+    
+    return loginToken;
+  }
+
+  /**
    * Login to Gigya and get session token
    */
   private async gigyaLogin(): Promise<string> {
     const url = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_LOGIN}`;
 
     console.log(`Authenticating user: ${this.credentials.username}`);
+    console.log(`Using Gigya API Key: ${this.config.gigyaApiKey.substring(0, 10)}...`);
+    console.log(`Locale: ${this.config.locale}, Country: ${this.config.countryCode}`);
 
-    const response = await this.axios.post(url, null, {
-      params: {
-        ApiKey: this.config.gigyaApiKey,
-        loginID: this.credentials.username,
-        password: this.credentials.password,
-      },
-    });
+    try {
+      const response = await this.axios.post(url, null, {
+        params: {
+          ApiKey: this.config.gigyaApiKey,
+          loginID: this.credentials.username,
+          password: this.credentials.password,
+        },
+      });
 
-    if (response.data.statusCode !== 200) {
-      console.error(`Gigya login failed. Status: ${response.data.statusCode}, Reason: ${response.data.statusReason}`);
-      throw new Error(`Gigya login failed: ${response.data.statusReason || 'Unknown error'}`);
+      if (response.data.statusCode !== 200) {
+        console.error(`Gigya login failed. Status: ${response.data.statusCode}, Reason: ${response.data.statusReason}`);
+        console.error(`Full error response:`, JSON.stringify(response.data, null, 2));
+        
+        // Provide more helpful error messages
+        let errorMessage = response.data.statusReason || 'Unknown error';
+        
+        if (response.data.statusCode === 403) {
+          if (response.data.errorCode === 403042) {
+            errorMessage = 'Invalid username or password. Please check your credentials.';
+          } else if (response.data.errorCode === 403047) {
+            errorMessage = 'Account is temporarily locked due to too many failed login attempts. Please try again later or reset your password.';
+          } else {
+            errorMessage = `Login failed: ${response.data.statusReason}. Please verify your username and password.`;
+          }
+        } else if (response.data.statusCode === 400) {
+          errorMessage = `Bad request: ${response.data.statusReason}. Please check that you're using the correct locale/country.`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      console.log('Gigya login successful');
+      return response.data.sessionInfo.cookieValue;
+    } catch (error: any) {
+      if (error.message && !error.response) {
+        // This is an error we already threw
+        throw error;
+      }
+      
+      // Network or other errors
+      console.error('Network or request error during login:', error.message);
+      throw new Error(`Login request failed: ${error.message}. Please check your internet connection.`);
     }
-
-    console.log('Gigya login successful');
-    return response.data.sessionInfo.cookieValue;
   }
 
   /**
@@ -170,12 +282,19 @@ export class RenaultApiClient {
   /**
    * Get account information
    * Sets accountId and country in credentials
+   * 
+   * IMPORTANT: Follows exact Postman flow order:
+   * 1. Get login token (from cache or login)
+   * 2. Get account info with login_token → personId
+   * 3. Get JWT with login_token → id_token
+   * 4. Get person details with id_token → accountId
    */
   async getAccountInfo(): Promise<{ accountId: string; country: string }> {
-    const idToken = await this.getIdToken();
-
-    // Get person ID from Gigya
-    const loginToken = await this.gigyaLogin();
+    // Step 1: Get login token (may trigger login if not cached)
+    const loginToken = await this.getLoginToken();
+    
+    // Step 2: Get person ID from Gigya BEFORE getting JWT
+    // This matches Postman flow where "1.2 Get Account Info" runs before "1.3 Get JWT Token"
     const accountInfoUrl = `${this.config.gigyaUrl}${API_ENDPOINTS.GIGYA_ACCOUNT_INFO}`;
 
     const accountResponse = await this.axios.get(accountInfoUrl, {
@@ -190,8 +309,12 @@ export class RenaultApiClient {
     }
 
     const personId = accountResponse.data.data.personId;
+    console.log(`Got personId: ${personId}`);
 
-    // Get person details from Kamereon
+    // Step 3: Now get JWT token (after account info, matching Postman flow)
+    const idToken = await this.getIdToken();
+
+    // Step 4: Get person details from Kamereon with JWT
     const personUrl = `${this.config.kamereonUrl}${API_ENDPOINTS.KAMEREON_PERSON.replace('{personId}', personId)}`;
 
     const personResponse = await this.axios.get(personUrl, {

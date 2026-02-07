@@ -100,7 +100,18 @@ npm test -- renault-api-client.test.ts
 npm run test:coverage
 ```
 
-## 🛠️ Development Tools
+## � API Testing with Postman
+
+A complete Postman collection is available in the [`postman/`](postman/) directory for testing all Renault API endpoints:
+
+- 🔐 Authentication flow (Gigya login, JWT tokens)
+- 🚗 Vehicle data endpoints (battery, location, HVAC, etc.)
+- 🎛️ Control commands (charge mode, climate control, etc.)
+- 🌍 Pre-configured environments for 7+ countries
+
+See [postman/README.md](postman/README.md) for setup instructions.
+
+## �🛠️ Development Tools
 
 - **TypeScript 5.9** - Type safety with `nodenext` module resolution
 - **ESLint 9** - Code quality and consistency
@@ -131,6 +142,36 @@ Vehicle capabilities are automatically detected based on model code. The app sup
 5. The app will sync battery status, location, charging state, etc.
 
 Note: This app uses the unofficial Renault API which may change without notice. Updates will be made as quickly as possible if changes occur.
+
+## 🆘 Troubleshooting
+
+Having problems? Check these common issues:
+
+### "Another pair session is already active"
+**Solution:** Restart the app in Homey settings or run `homey app restart`
+
+### "Wrong credentials" or authentication fails
+**Most common cause:** Wrong locale/region selected!
+
+Each country has different API keys. Using Swedish API key with Norwegian account will fail immediately.
+
+**Solution:** 
+1. Default is now Norway (`nb-NO`). If you're in Sweden, Denmark, or Finland, you may need to change this in the code
+2. Verify you can log in to [my.renault.no](https://my.renault.no) (or your country's site)
+3. Check that your account region matches the selected locale
+4. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed debugging steps
+
+**Important:** The authentication must follow exact API order:
+1. Login → Get Account Info → Get JWT → Get Person Details
+
+Wrong order will cause immediate failure. The app now follows correct Postman flow (v3.0+).
+
+### API errors or "not supported" messages
+Some features depend on your vehicle model. Not all Renault/Dacia models support all features.
+
+**📖 Full troubleshooting guide:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+**🧪 Test API manually:** See [postman/QUICKSTART.md](postman/QUICKSTART.md)
 
 ## 🤝 Contributing
 

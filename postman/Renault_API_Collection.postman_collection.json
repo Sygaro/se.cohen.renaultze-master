@@ -1,0 +1,923 @@
+{
+	"info": {
+		"_postman_id": "renault-api-collection-v1",
+		"name": "Renault API Collection",
+		"description": "Complete collection of Renault/Dacia API endpoints for vehicle data and control.\n\n⚠️ IMPORTANT: Some endpoints will fail in Postman but work in the app!\n\n**Expected errors:**\n- Charge Mode (3.2): May fail with 400002 \"Endpoint unavailable\" for newer models → Try 3.3 instead\n- Charging Settings (3.3): May fail with 502000 for older models → Try 3.2 instead\n- HVAC (4.3-4.4): Will fail with 400004 if battery < 20% → This is normal!\n\n**Why?** The app has intelligent fallback logic that tries multiple endpoints automatically.\n\nSee ERROR_ANALYSIS.md for detailed explanations.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"description": "Gigya authentication flow to get JWT token",
+			"item": [
+				{
+					"name": "1.1 Gigya Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check if login was successful",
+									"pm.test(\"Login successful\", function () {",
+									"    pm.expect(jsonData.statusCode).to.eql(200);",
+									"});",
+									"",
+									"// Save login token for next steps",
+									"if (jsonData.statusCode === 200) {",
+									"    pm.environment.set(\"login_token\", jsonData.sessionInfo.cookieValue);",
+									"    console.log(\"Login token saved:\", jsonData.sessionInfo.cookieValue);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{gigyaUrl}}/accounts.login?ApiKey={{gigyaApiKey}}&loginID={{username}}&password={{password}}",
+							"host": [
+								"{{gigyaUrl}}"
+							],
+							"path": [
+								"accounts.login"
+							],
+							"query": [
+								{
+									"key": "ApiKey",
+									"value": "{{gigyaApiKey}}"
+								},
+								{
+									"key": "loginID",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								}
+							]
+						},
+						"description": "Login to Gigya and get session token"
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Get Account Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check if successful",
+									"pm.test(\"Account info retrieved\", function () {",
+									"    pm.expect(jsonData.statusCode).to.eql(200);",
+									"});",
+									"",
+									"// Save person ID",
+									"if (jsonData.statusCode === 200) {",
+									"    pm.environment.set(\"personId\", jsonData.data.personId);",
+									"    console.log(\"Person ID saved:\", jsonData.data.personId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gigyaUrl}}/accounts.getAccountInfo?ApiKey={{gigyaApiKey}}&login_token={{login_token}}",
+							"host": [
+								"{{gigyaUrl}}"
+							],
+							"path": [
+								"accounts.getAccountInfo"
+							],
+							"query": [
+								{
+									"key": "ApiKey",
+									"value": "{{gigyaApiKey}}"
+								},
+								{
+									"key": "login_token",
+									"value": "{{login_token}}"
+								}
+							]
+						},
+						"description": "Get account information including person ID"
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Get JWT Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check if successful",
+									"pm.test(\"JWT token retrieved\", function () {",
+									"    pm.expect(jsonData.statusCode).to.eql(200);",
+									"});",
+									"",
+									"// Save JWT token",
+									"if (jsonData.statusCode === 200) {",
+									"    pm.environment.set(\"id_token\", jsonData.id_token);",
+									"    console.log(\"JWT token saved (expires in 900s)\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{gigyaUrl}}/accounts.getJWT?ApiKey={{gigyaApiKey}}&login_token={{login_token}}&fields=data.personId,data.gigyaDataCenter&expiration=900",
+							"host": [
+								"{{gigyaUrl}}"
+							],
+							"path": [
+								"accounts.getJWT"
+							],
+							"query": [
+								{
+									"key": "ApiKey",
+									"value": "{{gigyaApiKey}}"
+								},
+								{
+									"key": "login_token",
+									"value": "{{login_token}}"
+								},
+								{
+									"key": "fields",
+									"value": "data.personId,data.gigyaDataCenter"
+								},
+								{
+									"key": "expiration",
+									"value": "900"
+								}
+							]
+						},
+						"description": "Get JWT token for Kamereon API authentication (valid for 15 minutes)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Account & Vehicles",
+			"description": "Person and vehicle information",
+			"item": [
+				{
+					"name": "2.1 Get Person Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check if successful",
+									"pm.test(\"Person details retrieved\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Save account ID",
+									"if (jsonData.accounts && jsonData.accounts.length > 0) {",
+									"    const account = jsonData.accounts.find(acc => ",
+									"        acc.accountType === 'MYRENAULT' || acc.accountType === 'MYDACIA'",
+									"    );",
+									"    if (account) {",
+									"        pm.environment.set(\"accountId\", account.accountId);",
+									"        console.log(\"Account ID saved:\", account.accountId);",
+									"        console.log(\"Country:\", jsonData.country);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/persons/{{personId}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"persons",
+								"{{personId}}"
+							]
+						},
+						"description": "Get person details and account ID"
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Get Vehicles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Check if successful",
+									"pm.test(\"Vehicles retrieved\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Save first vehicle VIN",
+									"if (jsonData.vehicleLinks && jsonData.vehicleLinks.length > 0) {",
+									"    const firstVehicle = jsonData.vehicleLinks[0];",
+									"    pm.environment.set(\"vin\", firstVehicle.vin);",
+									"    console.log(\"VIN saved:\", firstVehicle.vin);",
+									"    console.log(\"Model:\", firstVehicle.vehicleDetails.model.label);",
+									"    console.log(\"Brand:\", firstVehicle.vehicleDetails.brand.label);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/vehicles?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"vehicles"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get list of vehicles linked to account"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Vehicle Data (GET)",
+			"description": "Read vehicle status and data",
+			"item": [
+				{
+					"name": "3.1 Get Battery Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v2/cars/{{vin}}/battery-status?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v2",
+								"cars",
+								"{{vin}}",
+								"battery-status"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get battery level, charging status, range, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Get Charge Mode",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/charge-mode?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"charge-mode"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get charge mode (always/scheduled)\n\n⚠️ NOTE: This endpoint is DEPRECATED for newer models and may return \"Endpoint unavailable for this gateway\" (400002). If this fails, try request 3.3 Get Charging Settings instead. The app automatically handles this fallback."
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Get Charging Settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/charging-settings?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"charging-settings"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get charging settings (newer endpoint with schedules)\n\n⚠️ NOTE: This is a NEWER endpoint that may fail with 502000 error for older models. If this fails, try request 3.2 Get Charge Mode instead. The app automatically tries this endpoint first and falls back to charge-mode if needed."
+					},
+					"response": []
+				},
+				{
+					"name": "3.4 Get HVAC Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/hvac-status?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"hvac-status"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get HVAC (climate control) status"
+					},
+					"response": []
+				},
+				{
+					"name": "3.5 Get Location",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/location?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"location"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get vehicle GPS location"
+					},
+					"response": []
+				},
+				{
+					"name": "3.6 Get Cockpit",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/cockpit?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"cockpit"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Get cockpit data (mileage, fuel if hybrid)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Vehicle Actions (POST)",
+			"description": "Control vehicle functions",
+			"item": [
+				{
+					"name": "4.1 Set Charge Mode - Always",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"ChargeMode\",\n        \"attributes\": {\n            \"action\": \"always_charging\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/actions/charge-mode?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"actions",
+								"charge-mode"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Set charge mode to 'always charging' (charge immediately)"
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Set Charge Mode - Scheduled",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"ChargeMode\",\n        \"attributes\": {\n            \"action\": \"schedule_mode\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/actions/charge-mode?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"actions",
+								"charge-mode"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Set charge mode to 'scheduled' (charge based on schedule)"
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 Start HVAC",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"HvacStart\",\n        \"attributes\": {\n            \"action\": \"start\",\n            \"targetTemperature\": 21\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/actions/hvac-start?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"actions",
+								"hvac-start"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Start HVAC (climate control) with target temperature\n\n⚠️ NOTE: This will fail with \"Insufficient Battery Level\" (400004) if battery is below 20%. This is a Renault safety feature."
+					},
+					"response": []
+				},
+				{
+					"name": "4.4 Cancel HVAC",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"HvacStart\",\n        \"attributes\": {\n            \"action\": \"cancel\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kca/car-adapter/v1/cars/{{vin}}/actions/hvac-start?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kca",
+								"car-adapter",
+								"v1",
+								"cars",
+								"{{vin}}",
+								"actions",
+								"hvac-start"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Cancel/stop HVAC (climate control)\n\n⚠️ NOTE: This will fail with \"Insufficient Battery Level\" (400004) if battery is below 20%. This is a Renault safety feature, not an error."
+					},
+					"response": []
+				},
+				{
+					"name": "4.5 Pause Charging",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"ChargePauseResume\",\n        \"attributes\": {\n            \"action\": \"pause\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kcm/v1/vehicles/{{vin}}/charge/pause-resume?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kcm",
+								"v1",
+								"vehicles",
+								"{{vin}}",
+								"charge",
+								"pause-resume"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Pause charging (KCM endpoint)"
+					},
+					"response": []
+				},
+				{
+					"name": "4.6 Resume Charging",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-gigya-id_token",
+								"value": "{{id_token}}",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{kamereonApiKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/vnd.api+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data\": {\n        \"type\": \"ChargePauseResume\",\n        \"attributes\": {\n            \"action\": \"resume\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{kamereonUrl}}/commerce/v1/accounts/{{accountId}}/kamereon/kcm/v1/vehicles/{{vin}}/charge/pause-resume?country={{countryCode}}",
+							"host": [
+								"{{kamereonUrl}}"
+							],
+							"path": [
+								"commerce",
+								"v1",
+								"accounts",
+								"{{accountId}}",
+								"kamereon",
+								"kcm",
+								"v1",
+								"vehicles",
+								"{{vin}}",
+								"charge",
+								"pause-resume"
+							],
+							"query": [
+								{
+									"key": "country",
+									"value": "{{countryCode}}"
+								}
+							]
+						},
+						"description": "Resume charging (KCM endpoint)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
