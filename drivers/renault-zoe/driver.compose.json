@@ -50,35 +50,7 @@
   },
   "pair": [
     {
-      "id": "login_credentials",
-      "template": "login_credentials",
-      "options": {
-        "title": {
-          "en": "Login to Renault IDConnect",
-          "no": "Logg inn på Renault IDConnect",
-          "it": "Collegamento a Renault IDConnect"
-        },
-        "usernameLabel": {
-          "en": "E-mail address",
-          "no": "E-postadresse",
-          "it": "Indirizzo E-mail"
-        },
-        "usernamePlaceholder": {
-          "en": "john@doe.com",
-          "no": "ola@nordmann.no",
-          "it": "marco@rossi.it"
-        },
-        "passwordLabel": {
-          "en": "Password",
-          "no": "Passord",
-          "it": "Password"
-        },
-        "passwordPlaceholder": {
-          "en": "Password",
-          "no": "Passord",
-          "it": "Password"
-        }
-      }
+      "id": "login_with_locale"
     },
     {
       "id": "list_devices",

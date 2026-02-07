@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+      color: #000;
+    }
+    
+    p {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 20px 0;
+      line-height: 1.5;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #000;
+    }
+    
+    select, input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+    
+    .button-container {
+      margin-top: 30px;
+      text-align: right;
+    }
+    
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background-color: #4a90e2;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    
+    button:hover {
+      background-color: #357abd;
+    }
+    
+    button:active {
+      background-color: #2a5d8f;
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .error-message {
+      color: #d32f2f;
+      font-size: 14px;
+      margin-top: 10px;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid: #4a90e2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Login to Dacia IDConnect</h1>
+  <p>Select your country and login with your Dacia account credentials.</p>
+  
+  <form id="loginForm" onsubmit="onLogin(event)">
+    <div class="form-group">
+      <label for="locale">Country / Region:</label>
+      <select id="locale" name="locale" required>
+        <option value="">-- Select Country --</option>
+        <option value="nb-NO">🇳🇴 Norway (Norge)</option>
+        <option value="sv-SE">🇸🇪 Sweden (Sverige)</option>
+        <option value="da-DK">🇩🇰 Denmark (Danmark)</option>
+        <option value="fi-FI">🇫🇮 Finland (Suomi)</option>
+        <option value="en-GB">🇬🇧 United Kingdom</option>
+        <option value="de-DE">🇩🇪 Germany (Deutschland)</option>
+        <option value="fr-FR">🇫🇷 France</option>
+        <option value="nl-NL">🇳🇱 Netherlands (Nederland)</option>
+        <option value="it-IT">🇮🇹 Italy (Italia)</option>
+        <option value="es-ES">🇪🇸 Spain (España)</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="username">E-mail address:</label>
+      <input type="email" id="username" name="username" placeholder="email@example.com" required autocomplete="username">
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+    </div>
+    
+    <div class="error-message" id="errorMessage"></div>
+    
+    <div class="button-container">
+      <button type="submit" id="loginButton">
+        <span id="buttonText">Login</span>
+        <span class="spinner" id="spinner"></span>
+      </button>
+    </div>
+  </form>
+  
+  <script>
+    console.log('[LOGIN_WITH_LOCALE] View loaded');
+    
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+    }
+    
+    function hideError() {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.classList.remove('show');
+    }
+    
+    function setLoading(loading) {
+      const button = document.getElementById('loginButton');
+      const spinner = document.getElementById('spinner');
+      const buttonText = document.getElementById('buttonText');
+      
+      button.disabled = loading;
+      if (loading) {
+        buttonText.textContent = 'Logging in...';
+        spinner.style.display = 'inline-block';
+      } else {
+        buttonText.textContent = 'Login';
+        spinner.style.display = 'none';
+      }
+    }
+    
+    async function onLogin(event) {
+      event.preventDefault();
+      hideError();
+      
+      const locale = document.getElementById('locale').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      if (!locale) {
+        showError('Please select a country');
+        return;
+      }
+      
+      if (!username || !password) {
+        showError('Please enter both email and password');
+        return;
+      }
+      
+      console.log('[LOGIN_WITH_LOCALE] Attempting login...', { locale, username });
+      setLoading(true);
+      
+      try {
+        // Send login request to driver
+        const result = await new Promise((resolve, reject) => {
+          Homey.emit('login_with_locale', {
+            locale: locale,
+            username: username,
+            password: password
+          }, (err, result) => {
+            if (err) {
+              reject(new Error(err));
+            } else {
+              resolve(result);
+            }
+          });
+        });
+        
+        console.log('[LOGIN_WITH_LOCALE] Login successful:', result);
+        
+        // Continue to next view
+        await Homey.showView('list_devices');
+        
+      } catch (error) {
+        console.error('[LOGIN_WITH_LOCALE] Login failed:', error);
+        setLoading(false);
+        showError(error.message || 'Login failed. Please check your credentials and selected country.');
+      }
+    }
+    
+    // Initialize
+    Homey.ready();
+  </script>
+</body>
+</html>

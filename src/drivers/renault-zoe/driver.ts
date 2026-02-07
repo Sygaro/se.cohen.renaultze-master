@@ -36,37 +36,44 @@ class RenaultZoeDriver extends Driver {
     const settings: PairingSettings = {
       username: '',
       password: '',
-      locale: 'nb-NO', // Changed from 'sv-SE' to Norwegian as default
+      locale: 'nb-NO', // Will be set by user selection
     };
 
     /**
-     * Login handler - authenticate with Renault API
+     * Combined login with locale selection
      */
-    session.setHandler('login', async (data: { username: string; password: string }) => {
-      this.log('Attempting login...');
+    session.setHandler('login_with_locale', async (data: { locale: string; username: string; password: string }) => {
+      this.log('Attempting login with locale...');
+      this.log(`Locale: ${data.locale}`);
+      this.log(`Username: ${data.username}`);
 
-      if (!data.username || !data.password) {
-        this.error('Username or password missing');
-        return false;
+      if (!data.locale || !data.username || !data.password) {
+        const error = 'Missing required fields';
+        this.error(error);
+        throw new Error(error);
       }
 
       try {
-        // Create API client
+        // Save settings
+        settings.locale = data.locale;
+        settings.username = data.username;
+        settings.password = data.password;
+
+        // Create API client with selected locale
+        this.log(`Creating API client with locale: ${settings.locale}`);
         apiClient = new RenaultApiClient(
           {
             username: data.username,
             password: data.password,
           },
-          settings.locale
+          data.locale
         );
 
         // Authenticate - getAccountInfo will handle login automatically
         this.log('Calling getAccountInfo()...');
         const accountInfo = await apiClient.getAccountInfo();
 
-        // Store credentials for later
-        settings.username = data.username;
-        settings.password = data.password;
+        // Store account ID
         settings.accountId = accountInfo.accountId;
 
         this.log('✅ Login successful');
@@ -80,12 +87,8 @@ class RenaultZoeDriver extends Driver {
           this.error('Debug info:', apiClient.getDebugInfo());
         }
         
-        this.error('Please verify:');
-        this.error('1. Username (email) is correct');
-        this.error('2. Password is correct');
-        this.error('3. You can log in to My Renault app/website');
-        this.error('4. Your account region matches the selected locale');
-        return false;
+        // Throw error with user-friendly message
+        throw new Error(errorMessage);
       }
     });
 

@@ -36,51 +36,51 @@ class DaciaSpringDriver extends Driver {
     const settings: PairingSettings = {
       username: '',
       password: '',
-      locale: 'it-IT', // Default locale for Dacia Spring
+      locale: 'nb-NO', // Will be set by user selection
     };
 
     /**
-     * Login handler - authenticate with Renault API
+     * Combined login with locale selection
      */
-    session.setHandler(
-      'login',
-      async (data: { username: string; password: string; locale?: string }) => {
-        this.log('Attempting login...');
+    session.setHandler('login_with_locale', async (data: { locale: string; username: string; password: string }) => {
+      this.log('Attempting login with locale...');
+      this.log(`Locale: ${data.locale}`);
+      this.log(`Username: ${data.username}`);
 
-        if (!data.username || !data.password) {
-          this.error('Missing username or password');
-          return false;
-        }
-
-        try {
-          // Store credentials
-          settings.username = data.username;
-          settings.password = data.password;
-          if (data.locale) {
-            settings.locale = data.locale;
-          }
-
-          // Create API client and authenticate
-          apiClient = new RenaultApiClient(
-            {
-              username: settings.username,
-              password: settings.password,
-            },
-            settings.locale
-          );
-
-          // Get account info (this handles login internally)
-          const accountInfo = await apiClient.getAccountInfo();
-          settings.accountId = accountInfo.accountId;
-
-          this.log('Login successful');
-          return true;
-        } catch (error) {
-          this.error('Login failed:', error);
-          return false;
-        }
+      if (!data.locale || !data.username || !data.password) {
+        const error = 'Missing required fields';
+        this.error(error);
+        throw new Error(error);
       }
-    );
+
+      try {
+        // Save settings
+        settings.locale = data.locale;
+        settings.username = data.username;
+        settings.password = data.password;
+
+        // Create API client with selected locale
+        this.log(`Creating API client with locale: ${settings.locale}`);
+        apiClient = new RenaultApiClient(
+          {
+            username: data.username,
+            password: data.password,
+          },
+          data.locale
+        );
+
+        // Get account info (this handles login internally)
+        const accountInfo = await apiClient.getAccountInfo();
+        settings.accountId = accountInfo.accountId;
+
+        this.log('Login successful');
+        return true;
+      } catch (error) {
+        this.error('Login failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(errorMessage);
+      }
+    });
 
     /**
      * List devices handler - fetch vehicles from API
@@ -107,7 +107,7 @@ class DaciaSpringDriver extends Driver {
             password: settings.password,
             accountId: settings.accountId,
             vin: vehicle.vin,
-            modelCode: vehicle.model, // vehicle.model contains the model code
+            modelCode: vehicle.model,
             locale: settings.locale,
           },
         }));

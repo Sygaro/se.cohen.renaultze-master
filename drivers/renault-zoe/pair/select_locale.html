@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+      color: #000;
+    }
+    
+    p {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 20px 0;
+      line-height: 1.5;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #000;
+    }
+    
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+    
+    .button-container {
+      margin-top: 30px;
+      text-align: right;
+    }
+    
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background-color: #4a90e2;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    
+    button:hover {
+      background-color: #357abd;
+    }
+    
+    button:active {
+      background-color: #2a5d8f;
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1 data-i18n="title">Select Your Country</h1>
+  <p data-i18n="description">Select the country where your Renault account is registered. This determines which API server to connect to.</p>
+  
+  <div class="form-group">
+    <label for="locale" data-i18n="label">Country:</label>
+    <select id="locale" name="locale">
+      <option value="nb-NO">🇳🇴 Norway (Norge)</option>
+      <option value="sv-SE">🇸🇪 Sweden (Sverige)</option>
+      <option value="da-DK">🇩🇰 Denmark (Danmark)</option>
+      <option value="fi-FI">🇫🇮 Finland (Suomi)</option>
+      <option value="en-GB">🇬🇧 United Kingdom</option>
+      <option value="de-DE">🇩🇪 Germany (Deutschland)</option>
+      <option value="fr-FR">🇫🇷 France</option>
+      <option value="nl-NL">🇳🇱 Netherlands (Nederland)</option>
+      <option value="it-IT">🇮🇹 Italy (Italia)</option>
+      <option value="es-ES">🇪🇸 Spain (España)</option>
+    </select>
+  </div>
+  
+  <div class="button-container">
+    <button id="continue" onclick="onContinue()" data-i18n="continue">Continue</button>
+  </div>
+  
+  <script>
+    // i18n translations
+    const translations = {
+      en: {
+        title: 'Select Your Country',
+        description: 'Select the country where your Renault account is registered. This determines which API server to connect to.',
+        label: 'Country:',
+        continue: 'Continue'
+      },
+      no: {
+        title: 'Velg ditt land',
+        description: 'Velg landet hvor din Renault-konto er registrert. Dette bestemmer hvilken API-server som skal brukes.',
+        label: 'Land:',
+        continue: 'Fortsett'
+      },
+      sv: {
+        title: 'Välj ditt land',
+        description: 'Välj landet där ditt Renault-konto är registrerat. Detta avgör vilken API-server som ska användas.',
+        label: 'Land:',
+        continue: 'Fortsätt'
+      }
+    };
+    
+    // Apply translations
+    function applyTranslations() {
+      const lang = (navigator.language || 'en').split('-')[0];
+      const t = translations[lang] || translations.en;
+      
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) {
+          if (el.tagName === 'INPUT' || el.tagName === 'BUTTON') {
+            el.value = t[key];
+            el.textContent = t[key];
+          } else {
+            el.textContent = t[key];
+          }
+        }
+      });
+    }
+    
+    async function onContinue() {
+      const locale = document.getElementById('locale').value;
+      
+      if (!locale) {
+        alert('Please select a country');
+        return;
+      }
+      
+      console.log('[SELECT_LOCALE] Selected locale:', locale);
+      
+      try {
+        // Send locale to driver
+        await Homey.emit('locale_selected', { locale: locale }, (err, result) => {
+          console.log('[SELECT_LOCALE] Callback received:', { err, result });
+        });
+        
+        console.log('[SELECT_LOCALE] Navigating to login...');
+        await Homey.showView('login_credentials');
+      } catch (error) {
+        console.error('[SELECT_LOCALE] Error:', error);
+        alert('Error: ' + error.message);
+      }
+    }
+    
+    // Initialize
+    console.log('[SELECT_LOCALE] View loaded');
+    Homey.ready();
+    applyTranslations();
+  </script>
+</body>
+</html>
